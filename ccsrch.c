@@ -1,6 +1,7 @@
 /*
  * ccsrch (c) 2007 Mike Beekey  - zaphod2718@yahoo.com All rights reserved
- * 
+ *
+ * Modifications (c) 2012 COMS3000 Assignment 2 Group Semester 2 <uni@roganartu.com>
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free
@@ -458,6 +459,7 @@ proc_dir_list(char *instr)
   int             dir_name_len = 0;
   char           *curr_path = NULL;
   struct stat     fstat;
+  struct stat     infd_stat;
   int             err = 0;
   char            tmpbuf[4096];
 
@@ -520,19 +522,25 @@ proc_dir_list(char *instr)
       if (escape_space(curr_path, tmpbuf) == 0)
       {
         /*
-         * kludge, need to clean this up
-         * later else any string matching in the path returns non NULL
+         * This uses the device id and the inode id for both the log file
+         * and the current file. These two pieces of information combined form
+         * a key for each file that is guaranteed to be unique no matter what.
+         * Easiest way to reliably check if two files are the same without
+         * requiring any new libraries
          */
         if (logfilename != NULL)
-          if (strstr(curr_path, logfilename) != NULL)
+        {
+          stat(curr_path, &infd_stat);
+          if (infd_stat.st_dev == log_file_stat.st_dev && infd_stat.st_ino == log_file_stat.st_ino)
             fprintf(stderr, "We seem to be hitting our log file, so we'll leave this out of the search -> %s\n", curr_path);
           else
           {
 #ifdef DEBUG
-printf("Processing file %s\n",curr_path);
+    printf("Processing file %s\n",curr_path);
 #endif
             ccsrch(curr_path);
           }
+        }
         else
         {
 #ifdef DEBUG
@@ -748,6 +756,7 @@ open_logfile()
       fprintf(stderr, "Unable to open logfile %s for writing; errno=%d\n", logfilename, errno);
       return (-1);
     }
+    stat(logfilename, &log_file_stat);
   }
   return (0);
 }

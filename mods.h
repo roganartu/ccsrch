@@ -6,7 +6,7 @@
  *    Description:  ccsrch modifications as per COMS3000 Assignment 2
  *                  All global vars from ccsrch source can be accessed in here.
  *
- *        Version:  0.0.1
+ *        Version:  0.0.2
  *        Created:  25/08/12 14:10:54
  *
  *         Author:  Tony Lee (Roganartu) <uni@roganartu.com>
@@ -42,6 +42,8 @@
 typedef int bool;
 #define false 0
 #define true 1
+
+struct stat log_file_stat;
 
 /* Method declarations */
 bool initialise_mods();
