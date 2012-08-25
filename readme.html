@@ -1,0 +1,191 @@
+<html>
+<head>
+<title>ccsrch README</title>
+</head>
+<h1><center>ccsrch: A credit card number searching tool</center></h1>
+<br>
+*******************************************************************************<br>
+ccsrch (c) 2007 Mike Beekey  - zaphod2718@yahoo.com All rights reserved<br><br>
+ 
+Version 1.0.3 <br>
+ 
+<p>This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option)
+any later version.
+<br> 
+<p>This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+more details.
+<br> 
+<p>You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59
+Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+<br> <br>
+*******************************************************************************<br><br>
+
+<h3>Name</h3>
+ccsrch 1.0.3 (c) 2007 zaphod2718@yahoo.com<br><br>
+
+<h3>Description</h3>
+<p>This README describes the process used by ccsrch for searching the filesystems for contiguous, unencrypted potential credit card numbers and track data. 
+<br><br>
+
+
+<h3>Options</h3>
+Usage: ./ccsrch &lt;options&gt; &lt;start path&gt;<br>
+&nbsp;&nbsp;&nbsp;  where &lt;options&gt; are:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-b&nbsp;&nbsp;&nbsp;Add the byte offset into the file of the number<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;-e&nbsp;&nbsp;&nbsp;Include the Modify Access and Create times in terms
+                   of seconds since the epoch<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;-f&nbsp;&nbsp;&nbsp;Just output the filename with potential PAN data<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;-j&nbsp;&nbsp;&nbsp;Include the Modify Access and Create times in terms
+                   of normal date/time<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;-o&nbsp;&nbsp;&nbsp; &lt;filename&gt;  Output the data to the file &lt;filename&gt; vs. standard out<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;-t&nbsp;&nbsp;&nbsp; &lt;1 or 2&gt;    Check if the pattern follows either a Track 1
+                   or 2 format<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;-T&nbsp;&nbsp;&nbsp;             Check for both Track 1 and Track 2 patterns<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;-h&nbsp;&nbsp;&nbsp;             This stuff<br><br>
+<br><br>
+
+<h3>Examples</h3>
+<br>
+# ccsrch ./&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		Generic search for credit card data starting in
+			current directory with output to screen<br><br>
+
+# ccsrch -o mycard.log c:\storage&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	Generic search for credit card 
+					data starting in c:\storage with
+					output to mycard.log<br><br>
+
+# ccsrch -t 2 ./&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 	Search for credit card data and check for Track 2
+			data formats with output to screen<br><br>
+
+# ccsrch -t 2 -o c.log ./&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 	Search for credit card data and check for 
+				Track 2 data formats with output to file c.log<br><br><br>
+
+
+<h3>Output</h3>
+
+<p>All output is tab delimited with the following order (depending on 
+the parameters):
+<br><br>
+Source File&nbsp;&nbsp;&nbsp;Card Type&nbsp;&nbsp;&nbsp;Card Number&nbsp;&nbsp;&nbsp;Byte Offset&nbsp;&nbsp;&nbsp;Modify Time&nbsp;&nbsp;&nbsp;Access Time&nbsp;&nbsp;&nbsp;Create Time&nbsp;&nbsp;&nbsp;Track Pattern Match
+<br><br>
+
+<h3>Assumptions</h3>
+<p>The following assumptions are made throughout the program searching for the 
+card numbers:
+
+<p>1. Cards can be a minimum of 13 numbers and up to 16 numbers.
+<p>2. Card numbers must be contiguous.  The only characters ignored when 
+processing the files are carriage returns, new line feeds, and nulls. 
+<p>3. Files are treated as raw binary objects and processed one character at 
+a time. This is useful as you can process not just filesystems, but also images of memory, swap space, processed sniffer logs, etc.
+<p>4. Solo and Switch cards are not processed in the prefix search.
+<p>5. Compressed or encoded files are <strong>NOT</strong> uncompressed or decoded in this version.
+These files should be identified separately and the program run on the 
+decompressed or decoded versions.
+<p>6. Files can be read. If a file cannot be opened for some reason, the program will throw an error to stderr.
+<br><br>
+<h3>Prefix Logic Check</h3>
+<p>The following prefixes are used to validate the potential card numbers that 
+have passed the mod 10 algorithm check.
+
+<br><br>
+Card Type: MasterCard<br>
+Valid Length: 16<br>
+Valid Prefixes: 51, 52, 53, 54, 55<br>
+<br>
+Card Type: VISA<br>
+Valid Length: 16<br>
+Valid Prefix: 4<br>
+<br>
+Card Type: Discover<br>
+Valid Length: 16<br>
+Valid Prefix: 6011<br>
+<br>
+Card Type: JCB<br>
+Valid Length: 16<br>
+Valid Prefixes: 3088, 3096, 3112, 3158, 3337, 3528, 3529<br>
+<br>
+Card Type: American Express<br>
+Valid Length: 15<br>
+Valid Prefixes: 34, 37<br>
+<br>
+Card Type: EnRoute<br>
+Valid Length: 15<br>
+Valid Prefixes: 2014, 2149<br>
+<br>
+Card Type: JCB<br>
+Valid Length: 15<br>
+Valid Prefixes: 1800, 2131, 3528, 3529<br>
+<br>
+Card Type: Diners Club, Carte Blanche<br>
+Valid Length: 14<br>
+Valid Prefixes: 36, 300, 301, 302, 303, 304, 305, 380, 381, 382, 383, 384, 385, 386, 387, 388<br>
+
+<h3>Porting</h3>
+This tool has been successfully compiled and run on (at least) the following operating systems:<br><br>
+FreeBSD 4.X, 5.X<br>
+Linux (various)<br>
+SCO UNIX 5.0.4-5.0.7<br>
+Solaris 8 <br>
+AIX 4.1.X<br>
+Windows 2000,XP<br>
+If you have any issues getting it to run on any system or version, please contact the author and have available any makefile or compile errors.
+<br><br>
+<h3>Bugs</h3>
+None known at this time. Please notify the author if you find anything strange.<br><br>
+
+<h3>Known Issues</h3>
+<p>One typical observation/complaint is the number of false positives that still 
+come up.  You will need to manually review and remove these. Certain patterns 
+will repeatedly come up which match all of the criteria for valid cards, but 
+are clearly bogus.  If there are enough cries for help, I may add some 
+additional sanity checks into the logic such as bank information. In addition, there are certain system files which clearly should not have cardholder data in them and can be ignored.  There may be an "ignore file list" in a new release to reduce the amount of stuff to go through, however this will impact the speed of the tool.
+
+<p>Note that since this program opens up each file and processes it, obviously 
+the access time (in epoch seconds) will change.  If you are going to do 
+forensics, one assumes that you have already collected an image following
+standard forensic practices and either have already collected and preserved 
+the MAC times, or are using this tool on a copy of the image.
+<p>For the track data search feature, the tool just examines the preceding characters before the valid credit card number and either the delimiter, or the delimeter and the characters (e.g. expiration date) following the credit card number.  This public release does not perform a full pattern match using the Track 1 or Track 2 formats.
+<p>We have found that for some POS software log files are generated that not only wrap across multiple lines, but insert hex representations of the ASCII values of the PAN data as well. Furthermore, these log files may contain track data. Remember that the only way that ccsrch will find the PAN data and track data is if it is contiguous. In certain instances you may luck out because the log files will contain an entire contigous PAN and will get flagged. We would encourage you to visually examine the files identified for confirmation. Introducing logic to capture all of the crazy possible storage representations of PAN and track data we've seen would make this tool a beast.
+<p>Please note that ccsrch recurses through the filesystem given a start directory and will attempt to open any file or object read-only one at a time.  Given that this could be performance or load intensive depending on the existing load on the system or its configuration, we recommend that you run the tool on a subset or sample of directories first in order to get an idea of the potential impact. We disclaim all liability for any performance impact, outages, or problems ccsrch could cause.
+<br><br>
+
+<h3>Revisions</h3>
+1.0.3&nbsp;&nbsp;&nbsp;Added the ability to just output filenames of potential PAN data.  Removed the 13 digit VISA number check. Cleaned up some error and signal handling that varied across operating systems.
+
+1.0.2&nbsp;&nbsp;&nbsp;Added some additional assumptions about track 1 pattern.<br><br>
+1.0.1&nbsp;&nbsp;&nbsp;Added options for searching files for track data patterns using initial formats and delimiters.  Also added the ability to select certain output options on the command line.<br><br>
+
+0.9.3&nbsp;&nbsp;&nbsp;Removed extraneous calls, simplified parameter passing, fixed 
+        non-portable type issues, removed debugging info<br><br>
+
+0.9.1&nbsp;&nbsp;&nbsp;Initial sourceforge release<br><br>
+
+
+<h3>Requests</h3>
+<p>If you have need for a specific functionality or modification to the tool,
+please notify the author either through the sourceforge mechanism or via email.  There have been some additional enhancements to the tool and some "offshoot" tools that have not been rolled back into the source tree.
+<br><br>
+
+
+<h3>Author</h3>
+ccsrch was written by Mike Beekey (zaphod2718@yahoo.com). PGP key is available upon request.<br><br>
+
+<h3>Contributors</h3>
+<p>Thanks to the following people for their assistance in working with earlier
+versions of the tool, testing enhancements, and providing comments, 
+flames, and constructive feedback.
+<br><br>
+John A, Kyley S, Anand S, Chris L, Mitch A
+<br><br>
+<h4>Original Sources for Credit Card Prefixes</h4>
+http://javascript.internet.com/forms/val-credit-card.html<br>
+http://www.erikandanna.com/Business/CreditCards/credit_card_authorization.htm<br>
+<br><br>
+Last Update 22/08/07<br><br>
+</html>
