@@ -153,6 +153,8 @@ Install [MinGW](http://www.mingw.org/) ([installer](http://sourceforge.net/proje
 4. Make tests. Your changes will not be accepted without tests
 5. Submit a pull request
 
+Don't change the version numbers. If you have to change the them, do it in a separate commit so I can ignore it when merging your pull request.
+
 ### Revisions
 
 1.0.3 (Aug. 28, 2007):
