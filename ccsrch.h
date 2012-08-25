@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
  */
+#ifndef CCSRCH_H
+#define CCSRCH_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,3 +73,4 @@ int track1_srch(int len);
 int track2_srch(int len);
 void usage (char *prog);
 
+#endif
