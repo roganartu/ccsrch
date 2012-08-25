@@ -21,22 +21,22 @@
 # Makefile for ccsrch
 #
 
-CC	=gcc
+CC = gcc
 #
 # for mingw use something like the following
 #INCL	= -I./ -I/mingw/include
 #LIBSDIR	=  -L./ -L/mingw/lib -L/mingw/mingw32/lib
 #
 # for *UNIX* the following tends to work
-INCL	= -I./
-CFLAGS	=-O2 -static
+INCL = -I./
+CFLAGS = -O2 -static
 #CFLAGS	=-O2 # for linux
 #CFLAGS	=-DDEBUG # if you want a lot of noise
-LDFLAGS	=-s
-OBJS=  ccsrch.o
+LDFLAGS	= -s
+OBJS = ccsrch.o mods.o
 LIBSDIR	=  -L./
-LIBS	= 
-PROGS	=ccsrch
+LIBS = 
+PROGS	= ccsrch
 
 all:	${PROGS}
 
