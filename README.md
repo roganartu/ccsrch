@@ -145,6 +145,14 @@ Windows:
 Install [MinGW](http://www.mingw.org/) ([installer](http://sourceforge.net/projects/mingw/files/Installer/mingw-get-inst/))  
 `mingw32-make all`
 
+### Contributing
+
+1. Contact me. Your modifications might already exist, be in progress or not be wanted
+2. Fork
+3. Make changes
+4. Make tests. Your changes will not be accepted without tests
+5. Submit a pull request
+
 ### Revisions
 
 1.0.3 (Aug. 28, 2007):
