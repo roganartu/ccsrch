@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include "mods.h"
 
 #ifndef SIGHUP
   #define SIGHUP 1
