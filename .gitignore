@@ -13,3 +13,6 @@
 
 # Compiled executable
 ccsrch
+
+# Log files
+*.log
