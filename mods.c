@@ -37,7 +37,25 @@
 
 /* Global variable definitions */
 
-
 /* Method definitions */
 
-
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  initialise_mods
+ *
+ *  Description:  Any initialisations you have to do to variables go here.
+ *                This method is called immediately after argument count
+ *                checking.
+ *                This method is expected to set errno to some value on error
+ * 
+ *      Version:  0.0.1
+ *       Params:  N/A
+ *      Returns:  bool true if success
+ *                bool false otherwise
+ *        Usage:  initialise_mods()
+ *      Outputs:  N/A
+ * =============================================================================
+ */
+bool initialise_mods() {
+    return true;
+}

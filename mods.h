@@ -39,9 +39,11 @@
 #include "ccsrch.h"
 
 /* Global variable declarations */
-
+typedef int bool;
+#define false 0
+#define true 1
 
 /* Method declarations */
-
+bool initialise_mods();
 
 #endif

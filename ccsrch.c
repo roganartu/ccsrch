@@ -779,6 +779,10 @@ main(int argc, char *argv[])
   if (argc < 2)
     usage(argv[0]);
 
+  /* Initialise the extensions. Will set errno on failure */
+  if (!initialise_mods())
+    exit(-1);
+
   while ((c = getopt(argc, argv,"befjt:To:")) != -1)
   {
     switch (c)
