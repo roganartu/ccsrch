@@ -5,7 +5,7 @@
  *
  *    Description:  Test file for ccsrch
  *
- *        Version:  0.0.1
+ *        Version:  0.0.2
  *        Created:  26/08/12 22:23:48
  *
  *         Author:  Tony Lee (Roganartu), uni@roganartu.com
@@ -49,6 +49,21 @@ int main(int argc, char *argv[]) {
     sanity_checks(output);
 }
 
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  initialize_card_arrs
+ *
+ *  Description:  Initialise local global variables with dummy card values
+ *                for each card type for memcpying into cardbuf for sanity
+ *                checking.
+ * 
+ *      Version:  0.0.1
+ *       Params:  N/A
+ *      Returns:  void
+ *        Usage:  initialize_card_arrs()
+ *      Outputs:  N/A
+ * =============================================================================
+ */
 void initialize_card_arrs() {
     int i, j;
 
@@ -200,6 +215,20 @@ void initialize_card_arrs() {
 
 }
 
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  sanity_checks
+ *
+ *  Description:  Check to ensure that all methods are functioning as expected
+ *                and detect all the different card formats
+ * 
+ *      Version:  0.0.1
+ *       Params:  N/A
+ *      Returns:  void
+ *        Usage:  sanity_checks()
+ *      Outputs:  Sanity check test results
+ * =============================================================================
+ */
 void sanity_checks(FILE *output) {
     long int offset = 0;
     char result;
