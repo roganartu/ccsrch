@@ -40,7 +40,6 @@ long		currfile_atime=0;
 long		currfile_mtime=0;
 long		currfile_ctime=0;
 int             init_time = 0;
-int		cardbuf[CARDSIZE];
 int 		print_byte_offset=0;
 int 		print_epoch_time=0;
 int 		print_julian_time=0;
@@ -65,6 +64,7 @@ initialize_buffer()
 void 
 print_result(char *cardname, int cardlen, long byte_offset)
 {
+#ifndef TEST_MAIN
   int             i = 0;
   char            nbuf[20];
   char            buf[MAXPATH];
@@ -151,6 +151,7 @@ print_result(char *cardname, int cardlen, long byte_offset)
     fprintf(stdout, "%s\n", buf);
 
   total_count++;
+#endif
 }
 
 int track1_srch(int cardlen)
@@ -568,7 +569,7 @@ printf("Processing file %s\n",curr_path);
   return (0);
 }
 
-void 
+int 
 check_mastercard_16(long offset)
 {
   char            num2buf[3];
@@ -578,10 +579,14 @@ check_mastercard_16(long offset)
   snprintf(num2buf, 3, "%d%d\0", cardbuf[0], cardbuf[1]);
   vnum = atoi(num2buf);
   if ((vnum > 50) && (vnum < 56))
+  {
     print_result("MASTERCARD", 16, offset);
+    return 1;
+  } else
+      return 0;
 }
 
-void 
+int 
 check_visa_16(long offset)
 {
   char            num2buf[2];
@@ -591,10 +596,14 @@ check_visa_16(long offset)
   snprintf(num2buf, 2, "%d\0", cardbuf[0]);
   vnum = atoi(num2buf);
   if (vnum == 4)
+  {
     print_result("VISA", 16, offset);
+    return 1;
+  } else
+      return 0;
 }
 
-void 
+int 
 check_discover_16(long offset)
 {
   char            num2buf[5];
@@ -604,10 +613,14 @@ check_discover_16(long offset)
   snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if (vnum == 6011)
+  {
     print_result("DISCOVER", 16, offset);
+    return 1;
+  } else
+      return 0;
 }
 
-void 
+int 
 check_jcb_16(long offset)
 {
   char            num2buf[5];
@@ -617,10 +630,14 @@ check_jcb_16(long offset)
   snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if ((vnum == 3088) || (vnum == 3096) || (vnum == 3112) || (vnum == 3158) || (vnum == 3337) || (vnum == 3528) || (vnum == 3529))
+  {
     print_result("JCB", 16, offset);
+    return 1;
+  } else
+      return 0;
 }
 
-void 
+int 
 check_amex_15(long offset)
 {
   char            num2buf[3];
@@ -630,10 +647,14 @@ check_amex_15(long offset)
   snprintf(num2buf, 3, "%d%d\0", cardbuf[0], cardbuf[1]);
   vnum = atoi(num2buf);
   if ((vnum == 34) || (vnum == 37))
+  {
     print_result("AMEX", 15, offset);
+    return 1;
+  } else
+      return 0;
 }
 
-void 
+int 
 check_enroute_15(long offset)
 {
   char            num2buf[5];
@@ -643,10 +664,14 @@ check_enroute_15(long offset)
   snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if ((vnum == 2014) || (vnum == 2149))
+  {
     print_result("ENROUTE", 15, offset);
+    return 1;
+  } else
+      return 0;
 }
 
-void 
+int 
 check_jcb_15(long offset)
 {
   char            num2buf[5];
@@ -656,10 +681,14 @@ check_jcb_15(long offset)
   snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if ((vnum == 2131) || (vnum == 1800) || (vnum == 3528) || (vnum == 3529))
+  {
     print_result("JCB", 15, offset);
+    return 1;
+  } else
+      return 0;
 }
 
-void 
+int 
 check_diners_club_cb_14(long offset)
 {
   char            num2buf[4];
@@ -674,7 +703,11 @@ check_diners_club_cb_14(long offset)
   vnum = atoi(num2buf);
   vnum2 = atoi(num2buf2);
   if (((vnum > 299) && (vnum < 306)) || ((vnum > 379) && (vnum < 389)) || (vnum2 == 36))
+  {
     print_result("DINERS_CLUB_CARTE_BLANCHE", 14, offset);
+    return 1;
+  } else
+      return 0;
 }
 
 /** It has been purported that these cards are no longer in use
@@ -775,6 +808,8 @@ int check_dir (char *name)
     return (0);
 }
 
+/* Don't define this if we're compiling for the test suite */
+#ifndef TEST_MAIN
 int 
 main(int argc, char *argv[])
 {
@@ -921,3 +956,4 @@ main(int argc, char *argv[])
 
   return (0);
 }
+#endif /* TEST_MAIN */

@@ -43,8 +43,15 @@ all:	${PROGS}
 ccsrch:	${OBJS}
 	${CC} ${CFLAGS} ${INCL} ${LDFLAGS} ${OBJS} ${LIBSDIR} ${LIBS} -o ccsrch
 
+# For some reason this build fails unless made from clean
+test: clean ccsrch ccsrchtest.o test.o
+	${CC} ${CFLAGS} ${INCL} ${LDFLAGS} ${OBJS} test.o ${LIBSDIR} ${LIBS} -o test
+
 clean:
 	rm -f core *.core ${PROGS} ${OBJS} ccsrch.exe
+
+ccsrchtest.o:
+	${CC} ${CFLAGS} ${INCL} -c ccsrch.c -D TEST_MAIN
 
 .c.o:
 	${CC} ${CFLAGS} ${INCL} -c $<

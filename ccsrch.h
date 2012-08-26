@@ -48,17 +48,18 @@
 #define CARDSIZE 17
 
 extern int errno;
+int cardbuf[CARDSIZE];
 
 int ccsrch (char *str);
-void check_mastercard_16(long offset);
-void check_visa_16(long offset);
-void check_discover_16(long offset);
-void check_jcb_16(long offset);
-void check_amex_15(long offset);
-void check_enroute_15(long offset);
-void check_jcb_15(long offset);
-void check_diners_club_cb_14(long offset);
-void check_visa_13(long offset);
+int check_mastercard_16(long offset);
+int check_visa_16(long offset);
+int check_discover_16(long offset);
+int check_jcb_16(long offset);
+int check_amex_15(long offset);
+int check_enroute_15(long offset);
+int check_jcb_15(long offset);
+int check_diners_club_cb_14(long offset);
+int check_visa_13(long offset);
 void cleanup_shtuff();
 int escape_space(char *infile, char *outfile);
 int get_file_stat(char *infile, struct stat *fattr);

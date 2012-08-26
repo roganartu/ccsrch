@@ -11,8 +11,9 @@
 *.la
 *.a
 
-# Compiled executable
+# Compiled executables
 ccsrch
+test
 
 # Log files
 *.log
