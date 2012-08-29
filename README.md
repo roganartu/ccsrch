@@ -4,12 +4,14 @@ CCSRCH is a cross-platform tool for searching filesystems for credit card inform
 
 ### Copyright
 
-Copyright (c) 2012 UQ COMS3000 Assignment 2 Group <uni@roganartu.com>
+Copyright (c) 2012 UQ COMS3000 Assignment 2 Group (CCFinders) <uni@roganartu.com>  
 Copyright (c) 2007 Mike Beekey <zaphod2718@yahoo.com>
 
 This application is licensed under the GNU General Public License (see below & COPYING).
 
-This project is a fork of CCSRCH as maintained by Mike Beekey at: http://sourceforge.net/projects/ccsrch/ - it is based on the last version released (1.0.3) which was released in August 2007.
+This project is a fork of CCSRCH as maintained by Mike Beekey at: http://sourceforge.net/projects/ccsrch/ - it is based on the last version (1.0.3) which was released in August 2007.
+
+This readme is based on the readme for 
 
 ### Using CCSRCH
 
@@ -184,6 +186,11 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 * Initial release.
 
 ### Contributors
+
+#### New Source (From 1.0.4)
+Tony Lee, Ashley Kurkowski, Jonathan Daniels, Justin Vu, Nils Albjerk, Dan Benveniste, Michael Holzheimer
+
+#### Original Source (Up to 1.0.3) - May be wrong. Hard to track down
 John A, Kyley S, Anand S, Chris L, Mitch A, Bill L, Phoram M
 
 ### License
