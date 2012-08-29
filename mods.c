@@ -60,3 +60,58 @@ struct stat log_file_stat = (struct stat) {0};
 bool initialise_mods() {
     return true;
 }
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  pipe_and_fork
+ *
+ *  Description:  Opens a pipe, forks and then closes the output side of
+ *                of the parent and the input side of the child. Changes fd
+ *                to be the input/output side of the pipe depending on whether
+ *                child or parent
+ * 
+ *      Version:  0.0.1
+ *       Params:  int *fd - Pointer to file descriptor to set
+ *                bool reverse - Declares which direction the pipe should be
+ *      Returns:  pid_t pid of child if parent
+ *                0 if child
+ *                < 0 if either pipe or fork failed
+ *        Usage:  pipe_and_fork(int *fd, bool reverse)
+ *      Outputs:  N/A
+ * =============================================================================
+ */
+pid_t pipe_and_fork(int *fd, bool reverse) {
+    pid_t pid;
+    int pipefds[2];
+    bool parent, child;
+
+    if (pipe(pipefds))
+        return -1;
+
+    parent = 1;
+    child = 0;
+    if (reverse) {
+        parent = 0;
+        child = 1;
+    }
+
+    pid = fork();
+
+    if (pid == (pid_t) 0) {
+        /* Child */
+        close(pipefds[parent]);
+        *fd = pipefds[child];
+        return 0;
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        close(pipefds[child]);
+        *fd = pipefds[parent];
+        return pid;
+    } else {
+        /* Error */
+        close(pipefds[child]);
+        close(pipefds[parent]);
+        return -1;
+    }
+}

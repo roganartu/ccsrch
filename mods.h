@@ -48,4 +48,6 @@ struct stat log_file_stat;
 /* Method declarations */
 bool initialise_mods();
 
+pid_t pipe_and_fork(int *fd, bool reverse);
+
 #endif
