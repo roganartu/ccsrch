@@ -42,4 +42,6 @@ void sanity_checks(FILE *output);
 
 void initialize_card_arrs();
 
+void log_file_detection(FILE *output);
+
 #endif

@@ -529,19 +529,9 @@ proc_dir_list(char *instr)
          * Easiest way to reliably check if two files are the same without
          * requiring any new libraries
          */
-        if (logfilename != NULL)
-        {
-          stat(curr_path, &infd_stat);
-          if (infd_stat.st_dev == log_file_stat.st_dev && infd_stat.st_ino == log_file_stat.st_ino)
-            fprintf(stderr, "We seem to be hitting our log file, so we'll leave this out of the search -> %s\n", curr_path);
-          else
-          {
-#ifdef DEBUG
-    printf("Processing file %s\n",curr_path);
-#endif
-            ccsrch(curr_path);
-          }
-        }
+        if (logfilename != NULL && fstat.st_dev == log_file_stat.st_dev && 
+                fstat.st_ino == log_file_stat.st_ino)
+            printf("Skipping log file: %s\n", curr_path);
         else
         {
 #ifdef DEBUG
@@ -918,7 +908,7 @@ main(int argc, char *argv[])
       {
         if (logfilename != NULL)
           if (strstr(inbuf, logfilename) != NULL)
-          fprintf(stderr, "main: We seem to be hitting our log file, so we'll leave this out of the search -> %s\n", inbuf);
+              fprintf(stderr, "main: We seem to be hitting our log file, so we'll leave this out of the search -> %s\n", inbuf);
           else
           {
 #ifdef DEBUG
@@ -947,8 +937,9 @@ main(int argc, char *argv[])
       proc_dir_list(inbuf);
 
     }
-    else
+    else {
       fprintf(stderr, "main: Unknown mode returned-> %x\n", ffstat.st_mode);
+    }
   }
 
   cleanup_shtuff();

@@ -47,6 +47,12 @@ int main(int argc, char *argv[]) {
     /* Sanity checks */
     fprintf(output, "%s\n", "==== Sanity Checks ==========================");
     sanity_checks(output);
+
+    fprintf(output, "%s", "\n");
+
+    /* Log file detection */
+    fprintf(output, "%s\n", "==== Log File Tests =========================");
+    log_file_detection(output);
 }
 
 /* 
@@ -301,4 +307,87 @@ void sanity_checks(FILE *output) {
         fprintf(output, "%c", result);
     }
     fprintf(output, "%s", "\n");
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  log_file_detection
+ *
+ *  Description:  Verifies that the modified ccsrch successfully detects it's
+ *                own log file regardless of path
+ *                Directory scanned: ./tests
+ *                Log file outputs:
+ *                    ./tests/log.log
+ *                    tests/../tests/log.log
+ *                    tests/log.log
+ *                    log.log
+ *                
+ *                Tests absolute paths, relative with redundancy, relative,
+ *                symlinks and no log file output
+ * 
+ *      Version:  0.0.1
+ *       Params:  FILE *output
+ *      Returns:  void
+ *        Usage:  log_file_detection( FILE *output )
+ *      Outputs:  Log file detection test results
+ * =============================================================================
+ */
+void log_file_detection(FILE *output) {
+    int num_tests = 4;
+    char logfilepath[MAXPATH], buffer[80], test_logs[num_tests][MAXPATH];
+    int i, j, pipe;
+    pid_t pid;
+    FILE *in_out;
+    bool found;
+
+    /* Initialise as empty strings */
+    for ( i = 0; i < MAXPATH; i++ ) {
+        logfilepath[i] = '\0';
+        for ( j = 0; j < num_tests; j++ ) {
+            test_logs[j][i] = '\0';
+        }
+    }
+
+    strncpy(test_logs[0], "./tests/log.log", MAXPATH); /* Absolute path (as best we can) */
+    strncpy(test_logs[1], "tests/../tests/log.log", MAXPATH); /* Weird path */
+    strncpy(test_logs[2], "tests/log.log", MAXPATH); /* Relative path */
+    strncpy(test_logs[3], "log.log", MAXPATH); /* Symlink test */
+
+    for ( i = 0; i < num_tests + 1; i++ ) {
+        if (i < num_tests)
+            strncpy(logfilepath, test_logs[i], MAXPATH);
+
+        pid = pipe_and_fork(&pipe, true);
+        if (pid == (pid_t) 0) {
+            /* Child */
+            dup2(pipe, STDOUT_FILENO);
+            dup2(pipe, STDERR_FILENO); /* Remove this if you need to debug */
+            if (i < num_tests)
+                execl("./ccsrch", "ccsrch", "-o", logfilepath, "tests", NULL);
+            else
+                execl("./ccsrch", "ccsrch", "tests", NULL);
+
+        } else if (pid > (pid_t) 0) {
+            /* Parent */
+            in_out = fdopen(pipe, "r");
+            found = false;
+            while (in_out != NULL && !feof(in_out)) {
+                fgets(buffer, 80, in_out);
+                if (strstr(buffer, "Skipping log file: ") != NULL) {
+                    found = true;
+                    break;
+                }
+            }
+            if ((i < num_tests && found) || (i == num_tests && !found))
+                fprintf(output, "%s", ".");
+            else
+                fprintf(output, "%s", "F");
+
+            waitpid(pid);
+            close(pipe);
+        } else {
+            /* Fork failed */
+            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+        }
+    }
 }
