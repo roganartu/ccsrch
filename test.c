@@ -383,7 +383,7 @@ void log_file_detection(FILE *output) {
             else
                 fprintf(output, "%s", "F");
 
-            waitpid(pid);
+            wait(NULL);
             close(pipe);
         } else {
             /* Fork failed */
