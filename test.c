@@ -334,7 +334,7 @@ void sanity_checks(FILE *output) {
  */
 void log_file_detection(FILE *output) {
     int num_tests = 4;
-    char logfilepath[MAXPATH], buffer[80], test_logs[num_tests][MAXPATH];
+    char buffer[80], test_logs[num_tests][MAXPATH];
     int i, j, pipe;
     pid_t pid;
     FILE *in_out;
@@ -342,7 +342,6 @@ void log_file_detection(FILE *output) {
 
     /* Initialise as empty strings */
     for ( i = 0; i < MAXPATH; i++ ) {
-        logfilepath[i] = '\0';
         for ( j = 0; j < num_tests; j++ ) {
             test_logs[j][i] = '\0';
         }
@@ -351,19 +350,16 @@ void log_file_detection(FILE *output) {
     strncpy(test_logs[0], "./tests/log.log", MAXPATH); /* Absolute path (as best we can) */
     strncpy(test_logs[1], "tests/../tests/log.log", MAXPATH); /* Weird path */
     strncpy(test_logs[2], "tests/log.log", MAXPATH); /* Relative path */
-    strncpy(test_logs[3], "log.log", MAXPATH); /* Symlink test */
+    strncpy(test_logs[3], "tests/log_symlink", MAXPATH); /* Symlink test */
 
     for ( i = 0; i < num_tests + 1; i++ ) {
-        if (i < num_tests)
-            strncpy(logfilepath, test_logs[i], MAXPATH);
-
         pid = pipe_and_fork(&pipe, true);
         if (pid == (pid_t) 0) {
             /* Child */
             dup2(pipe, STDOUT_FILENO);
             dup2(pipe, STDERR_FILENO); /* Remove this if you need to debug */
             if (i < num_tests)
-                execl("./ccsrch", "ccsrch", "-o", logfilepath, "tests", NULL);
+                execl("./ccsrch", "ccsrch", "-o", test_logs[i], "tests", NULL);
             else
                 execl("./ccsrch", "ccsrch", "tests", NULL);
 
