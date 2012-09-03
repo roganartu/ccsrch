@@ -11,7 +11,7 @@ This application is licensed under the GNU General Public License (see below & C
 
 This project is a fork of CCSRCH as maintained by Mike Beekey at: http://sourceforge.net/projects/ccsrch/ - it is based on the last version (1.0.3) which was released in August 2007.
 
-This readme is based on the readme for 
+This readme is based on the readme from https://github.com/adamcaudill/ccsrch
 
 ### Using CCSRCH
 
@@ -159,6 +159,11 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.0.4 (Sep. 3, 2012):
+
+* Added basic test suite
+* Detect parsing of log file through absolute paths, symlinks and hardlinks
+
 1.0.3 (Aug. 28, 2007):
 
 * Added the ability to just output filenames of potential PAN data.
@@ -188,7 +193,7 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 ### Contributors
 
 #### New Source (From 1.0.4)
-Tony Lee, Ashley Kurkowski, Jonathan Daniels, Justin Vu, Nils Albjerk, Dan Benveniste, Michael Holzheimer
+Tony L, Ashley K, Jonathan D, Justin V, Nils A, Dan B, Michael H
 
 #### Original Source (Up to 1.0.3) - May be wrong. Hard to track down
 John A, Kyley S, Anand S, Chris L, Mitch A, Bill L, Phoram M
