@@ -192,6 +192,8 @@ file_type detect_file_type(char *filename) {
                 type = EXECUTABLE;
             else if (strstr(file_cmd_output, "binary") != NULL)
                 type = EXECUTABLE;
+            else if (strstr(file_cmd_output, "image data") != NULL)
+                type = IMAGE;
             else if (strstr(file_cmd_output, "tar archive") != NULL)
                 type = TAR;
             else
