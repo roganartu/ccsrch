@@ -58,6 +58,17 @@ struct stat log_file_stat = (struct stat) {0};
  * =============================================================================
  */
 bool initialise_mods() {
+    // Work out the current working directory
+    if (getcwd(pwd, MAXPATH) == NULL) {
+        errno = EACCES;
+        return false;
+    }
+    // This should work for windows.
+    // See http://stackoverflow.com/a/7314690/943833
+    strncat(pwd, "/", MAXPATH);
+
+    skipped_executable_count = 0;
+
     return true;
 }
 
@@ -114,4 +125,89 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
         close(pipefds[parent]);
         return -1;
     }
+}
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  detect_file_type
+ *
+ *  Description:  Detects filetype of given file and returns true if we should
+ *                skip it and false otherwise.
+ *                Forks and calls file from command line. Parses result to
+ *                determine file type.
+ * 
+ *      Version:  0.0.1
+ *       Params:  char *filename
+ *      Returns:  bool true if type to skip
+ *                bool false otherwise
+ *        Usage:  detect_file_type( char *filename )
+ *      Outputs:  N/A
+ * =============================================================================
+ */
+file_type detect_file_type(char *filename) {
+    char buffer[80], *pipe_output, full_filename[MAXPATH], *file_cmd_output;
+    int pipe, read_count;
+    pid_t pid;
+    file_type type;
+    FILE *in_out;
+    
+    pid = pipe_and_fork(&pipe, true);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        dup2(pipe, STDOUT_FILENO);
+        //dup2(pipe, STDERR_FILENO); /* Remove comment if you need to debug */
+
+        full_filename[0] = '\0';
+        strncat(full_filename, pwd, MAXPATH);
+        strncat(full_filename, filename, MAXPATH);
+
+        execlp("file", "file", "-b", full_filename, NULL);
+
+        // Exec failed
+        perror("Failed to execlp \"file\"");
+        close(pipe);
+        exit(errno);
+
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        in_out = fdopen(pipe, "r");
+        file_cmd_output = malloc(80);
+        file_cmd_output[0] = '\0';
+        read_count = 1;
+        while (in_out != NULL && !feof(in_out)) {
+            pipe_output = fgets(buffer, 80, in_out);
+            if (pipe_output != NULL) {
+                file_cmd_output = realloc(file_cmd_output,
+                        strlen(file_cmd_output) + strlen(pipe_output) + 1);
+                strncat(file_cmd_output, pipe_output, 80);
+            }
+        }
+
+        // Work out what it is
+        if (file_cmd_output != NULL) {
+            if (strstr(file_cmd_output, "ASCII") != NULL)
+                type = ASCII;
+            else if (strstr(file_cmd_output, "executable") != NULL)
+                type = EXECUTABLE;
+            else if (strstr(file_cmd_output, "binary") != NULL)
+                type = EXECUTABLE;
+            else if (strstr(file_cmd_output, "tar archive") != NULL)
+                type = TAR;
+            else
+                type = UNKNOWN;
+        }
+
+        // Clean up
+        wait(NULL);
+        close(pipe);
+        free(file_cmd_output);
+
+        return type;
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+    }
+
+    return UNKNOWN;
 }

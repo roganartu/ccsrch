@@ -37,6 +37,7 @@
 #define MODS_H
 
 #include "ccsrch.h"
+#include <unistd.h>
 
 /* Global variable declarations */
 typedef int bool;
@@ -45,9 +46,30 @@ typedef int bool;
 
 struct stat log_file_stat;
 
+char pwd[2048];
+
+int skipped_executable_count;
+
+typedef enum FILE_TYPES {
+    ASCII,
+    EXECUTABLE,
+    IMAGE,
+    BINARY,
+    MS_WORD,
+    MS_EXCEL,
+    PDF,
+    ZIP,
+    GZIP,
+    TAR,
+    SELF_LOG,
+    UNKNOWN
+} file_type;
+
 /* Method declarations */
 bool initialise_mods();
 
 pid_t pipe_and_fork(int *fd, bool reverse);
+
+file_type detect_file_type(char *filename);
 
 #endif

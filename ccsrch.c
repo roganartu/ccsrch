@@ -294,6 +294,40 @@ ccsrch(char *filename)
   currfilename = filename;
   byte_offset=1;
 
+  switch (detect_file_type(filename)) {
+    case ASCII:
+    case UNKNOWN:
+      break;
+    case EXECUTABLE:
+    case BINARY:
+    case IMAGE:
+      skipped_executable_count++;
+      return 1;
+    case TAR:
+      // Untar to temp and add to search path. Still want to skip the archive
+      // Recursively search. Just keep calling ccsrch method on extracted files
+      // before deleting them
+      return 1;
+    case ZIP:
+      // Unzip to temp and add to search path. Still skip the archive
+      return 1;
+    case GZIP:
+      // Unzip to temp and add to search path. Still skip the archive
+      return 1;
+    case MS_WORD:
+      // Do something specific with word
+      break;
+    case MS_EXCEL:
+      // Do something specific with excel
+      break;
+    case PDF:
+      // Do something specific with PDF
+      break;
+    case SELF_LOG:
+      // TODO Print that we're skipping the log.
+      return 1;
+  }
+
   file_count++;
 
   initialize_buffer();
@@ -305,7 +339,6 @@ ccsrch(char *filename)
     if (cnt <= 0)
       break;
     ccsrch_index = 0;
-
 
     while (ccsrch_index < cnt)
     {
@@ -724,6 +757,7 @@ cleanup_shtuff()
   fprintf(stdout, "\n\nFiles searched ->\t\t%d\n", file_count);
   fprintf(stdout, "Search time (seconds) ->\t%d\n", ((int)time(NULL) - init_time));
   fprintf(stdout, "Credit card matches->\t\t%d\n", total_count);
+  fprintf(stdout, "Binary types skipped->\t\t%d\n", skipped_executable_count);
   if (tracksrch)
     fprintf(stdout, "Track data pattern matches->\t%d\n\n", trackdatacount);
   fprintf(stdout, "\nLocal end time: %s\n\n", ctime((time_t *)&end_time));
