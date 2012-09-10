@@ -53,6 +53,12 @@ int main(int argc, char *argv[]) {
     /* Log file detection */
     fprintf(output, "%s\n", "==== Log File Tests =========================");
     log_file_detection(output);
+
+    fprintf(output, "%s", "\n\n");
+
+    /* Image file detection */
+    fprintf(output, "%s\n", "==== Image File Tests =======================");
+    image_file_detection(output);
 }
 
 /* 
@@ -357,7 +363,7 @@ void log_file_detection(FILE *output) {
         if (pid == (pid_t) 0) {
             /* Child */
             dup2(pipe, STDOUT_FILENO);
-            dup2(pipe, STDERR_FILENO); /* Remove this if you need to debug */
+            dup2(pipe, STDERR_FILENO);
             if (i < num_tests)
                 execl("./ccsrch", "ccsrch", "-o", test_logs[i], "tests", NULL);
             else
@@ -375,6 +381,79 @@ void log_file_detection(FILE *output) {
                 }
             }
             if ((i < num_tests && found) || (i == num_tests && !found))
+                fprintf(output, "%s", ".");
+            else
+                fprintf(output, "%s", "F");
+
+            wait(NULL);
+            close(pipe);
+        } else {
+            /* Fork failed */
+            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+        }
+    }
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  image_file_detection
+ *
+ *  Description:  Verifies that the modified ccsrch successfully detects it's
+ *                Files scanned: tests/img.jpg
+ *                               tests/img.png
+ *                               tests/img.gif
+ *                               tests/img.not_an_image_extension
+ *                               tests/not_an_image.jpg
+ *                
+ *      Version:  0.0.1
+ *       Params:  FILE *output
+ *      Returns:  void
+ *        Usage:  image_file_detection( FILE *output )
+ *      Outputs:  Image file detection test results
+ * =============================================================================
+ */
+void image_file_detection(FILE *output) {
+    int num_tests = 5;
+    char buffer[80], test_paths[num_tests][MAXPATH];
+    int i, j, pipe;
+    pid_t pid;
+    FILE *in_out;
+    bool found;
+
+    /* Initialise as empty strings */
+    for ( i = 0; i < MAXPATH; i++ ) {
+        for ( j = 0; j < num_tests; j++ ) {
+            test_paths[j][i] = '\0';
+        }
+    }
+
+    strncpy(test_paths[0], "tests/img.jpg", MAXPATH);
+    strncpy(test_paths[1], "tests/img.png", MAXPATH);
+    strncpy(test_paths[2], "tests/img.gif", MAXPATH);
+    strncpy(test_paths[3], "tests/img.not_an_image_extension", MAXPATH);
+    strncpy(test_paths[4], "tests/not_an_image.jpg", MAXPATH);
+
+    for ( i = 0; i < num_tests; i++ ) {
+        pid = pipe_and_fork(&pipe, true);
+        if (pid == (pid_t) 0) {
+            /* Child */
+            dup2(pipe, STDOUT_FILENO);
+            dup2(pipe, STDERR_FILENO);
+            if (i < num_tests)
+                execl("./ccsrch", "ccsrch", test_paths[i], NULL);
+
+        } else if (pid > (pid_t) 0) {
+            /* Parent */
+            in_out = fdopen(pipe, "r");
+            found = false;
+            while (in_out != NULL && !feof(in_out)) {
+                fgets(buffer, 80, in_out);
+                if (strstr(buffer, "Binary types skipped->\t\t1") != NULL) {
+                    found = true;
+                    break;
+                }
+            }
+            if ((i != num_tests - 1 && found) || (i == num_tests - 1 && !found))
                 fprintf(output, "%s", ".");
             else
                 fprintf(output, "%s", "F");
