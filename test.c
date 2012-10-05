@@ -523,8 +523,7 @@ void ignore_char_detection(FILE *output) {
             /* Child */
             dup2(pipe, STDOUT_FILENO);
             dup2(pipe, STDERR_FILENO);
-            if (i < num_tests)
-                execl("./ccsrch", "ccsrch", test_files[i], NULL);
+            execl("./ccsrch", "ccsrch", test_files[i], NULL);
 
         } else if (pid > (pid_t) 0) {
             /* Parent */

@@ -38,20 +38,30 @@
 
 #include "ccsrch.h"
 #include <unistd.h>
+#include <fcntl.h>
 
 /* Global variable declarations */
 typedef int bool;
 #define false 0
 #define true 1
 
+#ifndef MAXPATH
+#define MAXPATH 2048
+#endif
+
 struct stat log_file_stat;
 
 char pwd[2048];
 
 int skipped_executable_count;
+int extracted_archive_count;
 
 int skipchar_count;
 char *skipchars;
+
+int nextrnd;
+
+char extracted_parent[MAXPATH];
 
 typedef enum FILE_TYPES {
     ASCII,
@@ -78,5 +88,11 @@ file_type detect_file_type(char *filename);
 void reset_skip_chars(void);
 
 bool in_skipped_arr(char check);
+
+int unzip_and_parse(char *filename);
+
+void gen_rand_string(char *output, int len);
+
+void remove_directory(char *dir);
 
 #endif

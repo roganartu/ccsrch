@@ -35,7 +35,6 @@ char           *logfilename = NULL;
 char           *currfilename = NULL;
 FILE           *logfilefd = NULL;
 long            total_count = 0;
-long            file_count = 0;
 long		currfile_atime=0;
 long		currfile_mtime=0;
 long		currfile_ctime=0;
@@ -75,6 +74,7 @@ print_result(char *cardname, int cardlen, long byte_offset)
   char		  adatebuf[CARDTYPELEN];
   char		  cdatebuf[CARDTYPELEN];
   char		  trackbuf[MDBUFSIZE];
+  char            print_filename[MAXPATH];
 
   memset(&nbuf, '\0', 20);
 
@@ -84,12 +84,21 @@ print_result(char *cardname, int cardlen, long byte_offset)
   memset(&buf,'\0',MAXPATH);
   memset(&basebuf,'\0',MDBUFSIZE);
 
+  // Show the filename of the archive if this file was extracted from somewhere
+  if (extracted_parent[0] != 0) {
+    strncpy(print_filename, extracted_parent, MAXPATH);
+    strncat(print_filename, " -> ", 5);
+    strncat(print_filename, index(currfilename, '/'),
+            MAXPATH - strlen(extracted_parent));
+  } else
+      strncpy(print_filename, currfilename, MAXPATH);
+
   /* MB we need to figure out how to update the count and spit out the final filename with the count.  ensure that it gets flushed out on the last match if you are doing a diff between previous filename and new filename */
 
   if (print_filename_only)
-    snprintf(basebuf, MDBUFSIZE, "%s", currfilename);
+    snprintf(basebuf, MDBUFSIZE, "%s", print_filename);
   else
-    snprintf(basebuf, MDBUFSIZE, "%s\t%s\t%s", currfilename, cardname, nbuf);
+    snprintf(basebuf, MDBUFSIZE, "%s\t%s\t%s", print_filename, cardname, nbuf);
 
   strncat(buf,basebuf,MAXPATH);
 
@@ -310,7 +319,7 @@ ccsrch(char *filename)
       return 1;
     case ZIP:
       // Unzip to temp and add to search path. Still skip the archive
-      return 1;
+      return unzip_and_parse(filename);
     case GZIP:
       // Unzip to temp and add to search path. Still skip the archive
       return 1;
@@ -755,8 +764,9 @@ cleanup_shtuff()
   end_time=time(NULL);
   fprintf(stdout, "\n\nFiles searched ->\t\t%d\n", file_count);
   fprintf(stdout, "Search time (seconds) ->\t%d\n", ((int)time(NULL) - init_time));
-  fprintf(stdout, "Credit card matches->\t\t%d\n", total_count);
-  fprintf(stdout, "Binary types skipped->\t\t%d\n", skipped_executable_count);
+  fprintf(stdout, "Credit card matches ->\t\t%d\n", total_count);
+  fprintf(stdout, "Binary types skipped ->\t\t%d\n", skipped_executable_count);
+  fprintf(stdout, "Archives extracted ->\t\t%d\n", extracted_archive_count);
   if (tracksrch)
     fprintf(stdout, "Track data pattern matches->\t%d\n\n", trackdatacount);
   fprintf(stdout, "\nLocal end time: %s\n\n", ctime((time_t *)&end_time));
@@ -904,6 +914,8 @@ main(int argc, char *argv[])
 
   memset(inbuf, '\0', inlen+1);
   strncpy(inbuf, inputstr, inlen);
+
+  file_count = 0;
 
   signal_proc();
 

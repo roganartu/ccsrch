@@ -68,10 +68,17 @@ bool initialise_mods() {
     strncat(pwd, "/", MAXPATH);
 
     skipped_executable_count = 0;
+    extracted_archive_count = 0;
 
     // Ensure skipchars array is NULL so that reset_skip_chars initialises it
     skipchars = NULL;
     reset_skip_chars();
+
+    // Random number seed for file extraction folder naming
+    nextrnd = 1;
+
+    // Zip file parent tracking
+    extracted_parent[0] = 0;
 
     return true;
 }
@@ -200,6 +207,8 @@ file_type detect_file_type(char *filename) {
                 type = IMAGE;
             else if (strstr(file_cmd_output, "tar archive") != NULL)
                 type = TAR;
+            else if (strstr(file_cmd_output, "Zip archive data") != NULL)
+                type = ZIP;
             else
                 type = UNKNOWN;
         }
@@ -297,4 +306,185 @@ bool in_skipped_arr(char check) {
             return true;
     }
     return false;
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  unzip_and_parse
+ *
+ *  Description:  Extract files from zip archive, parse the contents and return
+ *                the number of PANs found within.
+ * 
+ *      Version:  0.0.1
+ *       Params:  char *filename
+ *      Returns:  int
+ *                    0 on success
+ *                    exit(errno) otherwise
+ *        Usage:  unzip_and_parse( char *filename )
+ *      Outputs:  N/A
+
+ *        Notes:  Due to where this method is always called from, there is no
+ *                argument checking. Filename is assumed to be non-null
+ * =============================================================================
+ */
+int unzip_and_parse(char *filename) {
+    char *randdir, parent[MAXPATH];
+    pid_t pid;
+    int pipe, devnull;
+
+    randdir = malloc(18);
+    if (randdir == NULL) {
+        fprintf(stderr, "unzip_and_parse: unable to allocate memory: err=%d\n",
+                errno);
+        exit(ENOMEM);
+    }
+    memset(randdir, '\0', 18);
+
+    gen_rand_string(randdir, 16);
+
+    // Extracted file attribution. Need to remember parent if necessary
+    parent[0] = 0;
+    if (extracted_parent[0] != 0) {
+        strncpy(parent, extracted_parent, MAXPATH);
+        strncat(extracted_parent, " -> ", 5);
+        strncat(extracted_parent, index(filename, '/'),
+                MAXPATH - strlen(extracted_parent));
+    } else
+        strncpy(extracted_parent, filename, strlen(filename) + 1);
+
+    pid = pipe_and_fork(&pipe, true);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        devnull = open("/dev/null", O_WRONLY);
+        dup2(devnull, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        execlp("unzip", "unzip", "-d", randdir, filename, NULL);
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        wait(NULL);
+        close(pipe);
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "unzip_and_parse: failed to pipe and fork\n");
+        exit(ENOSYS);
+    }
+    
+    // Now that we've unzipped, let's parse that folder and then delete it
+    proc_dir_list(randdir);
+
+    // Cleanup
+    remove_directory(randdir);
+    free(randdir);
+
+    extracted_archive_count++;
+    if (parent[0] != 0)
+        strncpy(extracted_parent, parent, MAXPATH);
+    else
+        extracted_parent[0] = 0;
+
+    return 0;
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  gen_rand_string
+ *
+ *  Description:  Generate a random string of length len
+ *                output must be a char* of at least length len + 2. A random
+ *                string length len is generated and saved to ouput plus a
+ *                backslash and a terminating NULL char.
+ * 
+ *      Version:  0.0.1
+ *       Params:  char *output
+ *                int len
+ *      Returns:  void
+ *        Usage:  gen_rand_string( char *output, int len )
+ *      Outputs:  N/A
+
+ *        Notes:  
+ * =============================================================================
+ */
+void gen_rand_string(char *output, int len) {
+    int i;
+    char *from = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    srand(nextrnd++);
+    for ( i = 0; i < len; i++ ) {
+        output[i] = from[rand() % strlen(from) - 1];
+    }
+    output[len] = '/';
+    output[len + 1] = 0;
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  remove_directory
+ *
+ *  Description:  Traverses a directory, recursively removing all files before
+ *                finally removing the empty directory.
+ * 
+ *      Version:  0.0.1
+ *       Params:  char *dir
+ *      Returns:  void
+ *        Usage:  remove_directory( char *dir )
+ *      Outputs:  N/A
+
+ *        Notes:  
+ * =============================================================================
+ */
+void remove_directory(char *dir) {
+    struct dirent *d;
+    DIR *dirptr;
+    int err, dir_len;
+    struct stat fstat;
+    char *curr_path = NULL;
+
+    dir_len = strlen(dir);
+
+    curr_path = malloc(MAXPATH + 1);
+    if (curr_path == NULL) {
+        fprintf(stderr, "remove_directory: unable to allocate memory. err=%d\n",
+                errno);
+        exit(ENOMEM);
+    }
+    memset(curr_path, '\0', MAXPATH+1);
+    strncpy(curr_path, dir, MAXPATH);
+
+    dirptr = opendir(dir);
+    while ((d = readdir(dirptr)) != NULL) {
+
+        /* readdir give us everything and not necessarily in order. This 
+        logic is just silly, but it works */
+        if (((d->d_name[0] == '.') &&
+                (d->d_name[1] == '\0')) ||
+                ((d->d_name[0] == '.') &&
+                (d->d_name[1] == '.') &&
+                (d->d_name[2] == '\0')))
+            continue;
+
+        // Get each entry
+        strncat(curr_path, d->d_name, MAXPATH);
+        err = get_file_stat(curr_path, &fstat);
+        if (err == -1) {
+            if (errno == ENOENT)
+                fprintf(stderr, "proc_dir_list: file %s not found, can't stat\n", curr_path);
+            else
+                fprintf(stderr, "proc_dir_list: Cannot stat file %s; errno=%d\n", curr_path, errno);
+            closedir(dirptr);
+            exit(errno);
+        }
+
+        // Do the removing
+        if ((fstat.st_mode & S_IFMT) == S_IFDIR)
+            remove_directory(curr_path);
+        else if ((fstat.st_size > 0) && ((fstat.st_mode & S_IFMT) == S_IFREG))
+            unlink(curr_path);
+
+        // Reset the current path back to the base directory
+        curr_path[dir_len] = '\0';
+    }
+
+    free(curr_path);
+
+    rmdir(dir);
 }
