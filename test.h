@@ -46,4 +46,6 @@ void log_file_detection(FILE *output);
 
 void image_file_detection(FILE *output);
 
+void ignore_char_detection(FILE *output);
+
 #endif

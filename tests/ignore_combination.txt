@@ -1,0 +1,10 @@
+These should work:
+Discover, 601
+1 18-67 67-36 3105
+Discover, 6-011    -9632  -  8009  -  97-74
+MasterCard, 5-173   -----                      -                                       5 8 2 8 1  5                  2 3  9  0 5    5
+
+These should not:
+MasterCard, 513- -5 2 9 9 -2 5 6- -6 4io 0 6 9 4
+MasterCard, 52 6 -3- 0 6 7 3 9 3 9-i-a-dsfkjlhasdf 47775
+MasterCard, 517358as-d--f-2-a-dsf81asf5239055

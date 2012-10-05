@@ -69,6 +69,10 @@ bool initialise_mods() {
 
     skipped_executable_count = 0;
 
+    // Ensure skipchars array is NULL so that reset_skip_chars initialises it
+    skipchars = NULL;
+    reset_skip_chars();
+
     return true;
 }
 
@@ -212,4 +216,85 @@ file_type detect_file_type(char *filename) {
     }
 
     return UNKNOWN;
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  reset_skip_chars
+ *
+ *  Description:  The skipchars object allows flexible ignoring of any set of
+ *                characters. This is useful for cleaning up MS Word.
+ *
+ *                Success is assumed on return. Failure will exit program (we
+ *                can't really continue parsing if this doesn't work).
+ *
+ *                This method should be called by you before and after modifying
+ *                skipchars char array. Call it before to ensure it is in a
+ *                state you expect (if you're changing it, you're overriding),
+ *                and after to ensure it is in default state in other cases.
+ *
+ *                When you add characters to the array, remember to modify the
+ *                skipchars_count integer, so looping over the array is
+ *                simplified.
+ * 
+ *      Version:  0.0.1
+ *       Params:  void
+ *      Returns:  void
+ *        Usage:  reset_skip_chars()
+ *      Outputs:  N/A
+
+ *        Notes:  
+ * =============================================================================
+ */
+void reset_skip_chars(void) {
+    if (skipchars == NULL)
+        skipchars = malloc(4);
+    else
+        skipchars = realloc(skipchars, 4);
+
+    if (skipchars == NULL) {
+        fprintf(stderr, "reset_skip_chars: can't allocate memory; errno=%d\n",
+                errno);
+        exit(ENOMEM);
+    }
+
+    skipchar_count = 4;
+
+    // These are the defaults
+    skipchars[0] = ' ';  // Default for ccsrch
+    skipchars[1] = '\n'; // Unix and Windows line feed
+    skipchars[2] = '\r'; // Windows line feed
+    skipchars[3] = '-';  // As per specification
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  in_skipped_arr
+ *
+ *  Description:  Checks if the supplied character is within the skipchars
+ *                array. Relies on skipchars_count reliably representing the
+ *                length of the arrays.
+ * 
+ *      Version:  0.0.1
+ *       Params:  char check
+ *      Returns:  bool
+ *                    true if check is within skipchars
+ *                    false otherwise
+ *        Usage:  in_skipped_arr( char check )
+ *      Outputs:  N/A
+
+ *        Notes:  
+ * =============================================================================
+ */
+bool in_skipped_arr(char check) {
+    int i;
+
+    if (skipchars == NULL)
+        return false;
+
+    for ( i = 0; i < skipchar_count; i++ ) {
+        if (check == skipchars[i])
+            return true;
+    }
+    return false;
 }

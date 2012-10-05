@@ -59,6 +59,12 @@ int main(int argc, char *argv[]) {
     /* Image file detection */
     fprintf(output, "%s\n", "==== Image File Tests =======================");
     image_file_detection(output);
+
+    fprintf(output, "%s", "\n\n");
+
+    /* Image file detection */
+    fprintf(output, "%s\n", "==== Default Separator Tests ================");
+    ignore_char_detection(output);
 }
 
 /* 
@@ -454,6 +460,84 @@ void image_file_detection(FILE *output) {
                 }
             }
             if ((i != num_tests - 1 && found) || (i == num_tests - 1 && !found))
+                fprintf(output, "%s", ".");
+            else
+                fprintf(output, "%s", "F");
+
+            wait(NULL);
+            close(pipe);
+        } else {
+            /* Fork failed */
+            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+        }
+    }
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  ignore_char_detection
+ *
+ *  Description:  Verifies that the modified ccsrch successfully detects and
+ *                ignores the default ignore characters
+ *                Tests, in order:
+ *                    space
+ *                    \n
+ *                    \r
+ *                    -
+ *                    combination of above
+ *                
+ *                There should be 3 credit card matches in the given file out of
+ *                6 potential PANs
+ *                
+ *      Version:  0.0.1
+ *       Params:  FILE *output
+ *      Returns:  void
+ *        Usage:  ignore_char_detection( FILE *output )
+ *      Outputs:  Ignore character detection test results
+ * =============================================================================
+ */
+void ignore_char_detection(FILE *output) {
+    int num_tests = 5;
+    char buffer[80], test_files[num_tests][MAXPATH];
+    int i, j, pipe;
+    pid_t pid;
+    FILE *in_out;
+    bool found;
+
+    /* Initialise as empty strings */
+    for ( i = 0; i < MAXPATH; i++ ) {
+        for ( j = 0; j < num_tests; j++ ) {
+            test_files[j][i] = '\0';
+        }
+    }
+
+    strncpy(test_files[0], "./tests/ignore_space.txt", MAXPATH);
+    strncpy(test_files[1], "./tests/ignore_unix_newline.txt", MAXPATH);
+    strncpy(test_files[2], "./tests/ignore_windows_newline.txt", MAXPATH);
+    strncpy(test_files[3], "./tests/ignore_dash.txt", MAXPATH);
+    strncpy(test_files[4], "./tests/ignore_combination.txt", MAXPATH);
+
+    for ( i = 0; i < num_tests; i++ ) {
+        pid = pipe_and_fork(&pipe, true);
+        if (pid == (pid_t) 0) {
+            /* Child */
+            dup2(pipe, STDOUT_FILENO);
+            dup2(pipe, STDERR_FILENO);
+            if (i < num_tests)
+                execl("./ccsrch", "ccsrch", test_files[i], NULL);
+
+        } else if (pid > (pid_t) 0) {
+            /* Parent */
+            in_out = fdopen(pipe, "r");
+            found = false;
+            while (in_out != NULL && !feof(in_out)) {
+                fgets(buffer, 80, in_out);
+                if (strstr(buffer, "Credit card matches->\t\t3") != NULL) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found)
                 fprintf(output, "%s", ".");
             else
                 fprintf(output, "%s", "F");

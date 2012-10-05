@@ -1,0 +1,45 @@
+These should work:
+Discover, 6011
+1867
+6736
+3105
+Discover, 6011
+
+
+
+
+963280
+099774
+MasterCard, 5
+1
+7
+3
+5
+8
+2
+8
+1
+5
+2
+3
+9
+0
+5
+5
+
+These should not:
+MasterCard, 5135
+29925664
+o
+0694
+MasterCard, 5263067393
+9
+iadsfkjlhas
+df47
+775
+MasterCard, 517358asd
+f
+2adsf81asf
+5
+23
+9055

@@ -50,6 +50,9 @@ char pwd[2048];
 
 int skipped_executable_count;
 
+int skipchar_count;
+char *skipchars;
+
 typedef enum FILE_TYPES {
     ASCII,
     EXECUTABLE,
@@ -71,5 +74,9 @@ bool initialise_mods();
 pid_t pipe_and_fork(int *fd, bool reverse);
 
 file_type detect_file_type(char *filename);
+
+void reset_skip_chars(void);
+
+bool in_skipped_arr(char check);
 
 #endif

@@ -347,15 +347,14 @@ ccsrch(char *filename)
         check = 1;
         cardbuf[counter] = ((int)ccsrch_buf[ccsrch_index])-48;
         counter++;
-      } else if ((ccsrch_buf[ccsrch_index] != 0) && (ccsrch_buf[ccsrch_index] != 10) && (ccsrch_buf[ccsrch_index] != 13))
+      } else if (ccsrch_buf[ccsrch_index] == 0 || in_skipped_arr(ccsrch_buf[ccsrch_index]))
       {
         /*
-         * we consider nulls, new lines, and carriage
-         * returns to be noise, so ingore those,
+         * we consider anything within the skipchars array to be noise, and
+         * hence ignored. See ccsrch mods method in_skipped_arr for details
          * otherwise, restart the count
          */
-        check = 1;
-        counter = 0;
+        check = 0;
       } else
       {
         check = 0;
