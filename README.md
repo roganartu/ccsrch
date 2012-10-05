@@ -159,6 +159,14 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.0.5 (Oct. 6, 2012):
+
+* Modified character ignore logic to allow dynamic modification of ignore characters, depending on filetype.
+* Added zip archive handling. Supports recursive extraction.
+* Fixed bug in test suite regarding newer versions of waitpid
+* Added file type detection using POSIX fork and file
+* Added executable, image and binary detection and skipping using file type detection
+
 1.0.4 (Sep. 3, 2012):
 
 * Added basic test suite

@@ -2,6 +2,7 @@
  * ccsrch (c) 2007 Mike Beekey  - zaphod2718@yahoo.com
  * All rights reserved
  *
+ * Modifications (c) 2012 COMS3000 Assignment 2 Group Semester 2 <uni@roganartu.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,7 +40,7 @@
   #define SIGQUIT 3
 #endif
 
-#define PROG_VER "ccsrch 1.0.3 (c) 2007 zaphod2718@yahoo.com"
+#define PROG_VER "ccsrch 1.0.5 (c) 2012 COMS3000 Assignment 2 Group Semester 2"
 
 #define MDBUFSIZE 512
 #define MAXPATH 2048
