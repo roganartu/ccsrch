@@ -29,9 +29,9 @@ CC = gcc
 #
 # for *UNIX* the following tends to work
 INCL = -I./
-CFLAGS = -O2 -static
+CFLAGS = -O2
 #CFLAGS	=-O2 # for linux
-#CFLAGS	=-DDEBUG # if you want a lot of noise
+CFLAGS	=-DDEBUG # if you want a lot of noise
 LDFLAGS	= -s
 OBJS = ccsrch.o mods.o
 LIBSDIR	=  -L./

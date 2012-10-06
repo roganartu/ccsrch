@@ -325,13 +325,13 @@ ccsrch(char *filename)
       // Untar to temp and add to search path. Still want to skip the archive
       // Recursively search. Just keep calling ccsrch method on extracted files
       // before deleting them
-      return 1;
+    return untar_and_parse(filename);
     case ZIP:
       // Unzip to temp and add to search path. Still skip the archive
       return unzip_and_parse(filename);
     case GZIP:
       // Unzip to temp and add to search path. Still skip the archive
-      return 1;
+      return gunzip_and_parse(filename);
     case MS_WORD:
       // Do something specific with word
       break;

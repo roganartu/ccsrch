@@ -48,4 +48,6 @@ void image_file_detection(FILE *output);
 
 void ignore_char_detection(FILE *output);
 
+void compression_tests(FILE *output);
+
 #endif
