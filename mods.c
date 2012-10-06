@@ -174,7 +174,8 @@ file_type detect_file_type(char *filename) {
         //dup2(pipe, STDERR_FILENO); /* Remove comment if you need to debug */
 
         full_filename[0] = '\0';
-        strncat(full_filename, pwd, MAXPATH);
+        if (filename[0] != '/')
+            strncat(full_filename, pwd, MAXPATH);
         strncat(full_filename, filename, MAXPATH);
 
         execlp("file", "file", "-b", full_filename, NULL);
