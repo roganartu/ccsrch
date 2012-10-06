@@ -314,6 +314,7 @@ ccsrch(char *filename)
     case EXECUTABLE:
     case BINARY:
     case IMAGE:
+    case VIDEO:
       skipped_executable_count++;
       return 1;
     case TAR:
@@ -333,6 +334,11 @@ ccsrch(char *filename)
     case MS_EXCEL:
       // Do something specific with excel
       break;
+    case MS_WORDX:
+      // Do something specific with new word docs
+      break;
+    case MS_EXCELX:
+      // Do something specific with new excel docs
     case PDF:
       // Do something specific with PDF
       break;

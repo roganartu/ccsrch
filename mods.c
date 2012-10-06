@@ -158,6 +158,8 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
  *        Notes:  
  *                Open Office mime types from:
  *                  http://www.openoffice.org/framework/documentation/mimetypes/mimetypes.html
+ *                Image mime types from:
+ *                  http://www.iana.org/assignments/media-types/image/index.html
  * =============================================================================
  */
 file_type detect_file_type(char *filename) {
@@ -178,7 +180,7 @@ file_type detect_file_type(char *filename) {
             strncat(full_filename, pwd, MAXPATH);
         strncat(full_filename, filename, MAXPATH);
 
-        execlp("file", "file", "-b", full_filename, NULL);
+        execlp("file", "file", "--mime", "-b", full_filename, NULL);
 
         // Exec failed
         perror("Failed to execlp \"file\"");
@@ -202,31 +204,57 @@ file_type detect_file_type(char *filename) {
 
         // Work out what it is
         if (file_cmd_output != NULL) {
-            if (strstr(file_cmd_output, "ASCII") != NULL)
+            if (strstr(file_cmd_output, "text/plain") != NULL)
                 type = ASCII;
-            else if (strstr(file_cmd_output, "executable") != NULL)
+            else if (strstr(file_cmd_output, "application/x-executable") != NULL)
                 type = EXECUTABLE;
-            else if (strstr(file_cmd_output, "binary") != NULL)
-                type = EXECUTABLE;
-            else if (strstr(file_cmd_output, "image data") != NULL)
+            else if (strstr(file_cmd_output, "image/") != NULL)
                 type = IMAGE;
-            else if (strstr(file_cmd_output, "tar archive") != NULL)
+            else if (strstr(file_cmd_output, "video/") != NULL)
+                type = VIDEO;
+            else if (strstr(file_cmd_output, "application/x-tar") != NULL)
                 type = TAR;
-            else if (strstr(file_cmd_output, "Zip archive data") != NULL)
+            else if (strstr(file_cmd_output, "application/zip") != NULL) {
+                // Due to poor msword filetype detection, we need to rely on
+                // file extensions here
+                if (strncmp(last_strstr(filename, "."), ".docx", 7) == 0)
+                    type = MS_WORDX;
+                else if (strncmp(last_strstr(filename, "."), ".xlsx", 7) == 0)
+                    type = MS_EXCELX;
+                else
+                    // Make ZIP the default here
+                    type = ZIP;
+            }
+            else if (strstr(file_cmd_output, "application/x-gzip") != NULL)
                 type = ZIP;
-            else if (strstr(file_cmd_output, "XML") != NULL)
+            else if (strstr(file_cmd_output, "application/xml") != NULL)
                 type = XML;
-            else if (strstr(file_cmd_output, "OpenDocument Text Template") != NULL)
+            else if (strstr(file_cmd_output, "opendocument.text-template") != NULL)
                 type = OTT;
-            else if (strstr(file_cmd_output, "OpenDocument Text") != NULL)
+            else if (strstr(file_cmd_output, "opendocument.text") != NULL)
                 type = ODT;
-            else if (strstr(file_cmd_output, "OpenDocument Template") != NULL ||
-                    strstr(file_cmd_output, "OpenDocument Spreadsheet Template") != NULL)
+            else if (strstr(file_cmd_output, "opendocument.spreadsheet.template") != NULL)
                 type = OTS;
-            else if (strstr(file_cmd_output, "OpenDocument Spreadsheet") != NULL)
+            else if (strstr(file_cmd_output, "opendocument.spreadsheet") != NULL)
                 type = ODS;
-            else
+            else if (strstr(file_cmd_output, "application/msword") != NULL) {
+                // Due to poor msword filetype detection, we need to rely on
+                // file extensions here
+                if (strncmp(last_strstr(filename, "."), ".doc", 6) == 0)
+                    type = MS_WORD;
+                else if (strncmp(last_strstr(filename, "."), ".xls", 6) == 0)
+                    type = MS_EXCEL;
+                else
+                    // Make MS_WORD the default here
+                    type = MS_WORD;
+            }
+            // This should stay last. Other legitimate mime types often use this charset
+            else if (strstr(file_cmd_output, "charset=binary") != NULL)
+                type = BINARY;
+            else {
+                fprintf(stderr, "%s\n", file_cmd_output);
                 type = UNKNOWN;
+            }
         }
 
         // Clean up
@@ -503,4 +531,38 @@ void remove_directory(char *dir) {
     free(curr_path);
 
     rmdir(dir);
+}
+
+/*
+ * From http://stackoverflow.com/a/1643946/943833
+ * In response to
+ * http://stackoverflow.com/questions/1634359/is-there-a-reverse-fn-for-strstr
+ *
+ * Basically, strstr but return last occurence, not first.
+ *
+ * This file contains several implementations and a harness to test and
+ * benchmark them.
+ *
+ * Some of the implementations of the actual function are copied from
+ * elsewhere; they are commented with the location. The rest of the coe
+ * was written by Lars Wirzenius (liw@liw.fi) and is hereby released into
+ * the public domain. No warranty. If it turns out to be broken, you get
+ * to keep the pieces.
+ */
+
+/* By liw. */
+static char *last_strstr(const char *haystack, const char *needle) {
+    if (*needle == '\0')
+        return (char *) haystack;
+
+    char *result = NULL;
+    for (;;) {
+        char *p = strstr(haystack, needle);
+        if (p == NULL)
+            break;
+        result = p;
+        haystack = p + 1;
+    }
+
+    return result;
 }

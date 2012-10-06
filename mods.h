@@ -67,9 +67,12 @@ typedef enum FILE_TYPES {
     ASCII,
     EXECUTABLE,
     IMAGE,
+    VIDEO,
     BINARY,
     MS_WORD,
     MS_EXCEL,
+    MS_WORDX,
+    MS_EXCELX,
     PDF,
     XML,
     ZIP,
@@ -99,5 +102,7 @@ int unzip_and_parse(char *filename);
 void gen_rand_string(char *output, int len);
 
 void remove_directory(char *dir);
+
+static char *last_strstr(const char *haystack, const char *needle);
 
 #endif
