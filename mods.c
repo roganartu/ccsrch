@@ -474,7 +474,7 @@ int gunzip_and_parse(char *filename) {
     } else
         strncpy(extracted_parent, filename, strlen(filename) + 1);
 
-    pid = pipe_and_fork(&pipe, 1);
+    pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
         /* Child */
         gunzipped_file = open(temp_file, O_RDWR|O_CREAT, 0666);
@@ -497,8 +497,7 @@ int gunzip_and_parse(char *filename) {
 
     // Cleanup
     remove(temp_file);
-    free(temp_file);
-
+    
     extracted_archive_count++;
     if (parent[0] != 0)
         strncpy(extracted_parent, parent, MAXPATH);
@@ -534,17 +533,23 @@ int untar_and_parse(char *filename) {
     int pipe, devnull, total;
 	
     char template[] = "ccsrch-tmp_folder-XXXXXX";
-    char *temp_folder;
-
-    temp_folder = (char*)mkdtemp(template);
-
-    if (temp_folder == NULL) {
+    char *temp_folder_name;
+    temp_folder_name = (char*)mkdtemp(template);
+	
+    if (temp_folder_name == NULL) {
         fprintf(stderr, "untar_and_parse: unable to create tmp folder\n");
         return 0;
     }
+    
+    char *temp_folder = (char*)malloc(sizeof(char) * 26);
 
+    memset(temp_folder, '\0', 26);
+	strcat(temp_folder, temp_folder_name);
+	strcat(temp_folder, "/");
+	
+	
     // Extracted file attribution. Need to remember parent if necessary
-    parent[0] = 0;
+/*    parent[0] = 0;
     if (extracted_parent[0] != 0) {
         strncpy(parent, extracted_parent, MAXPATH);
         strncat(extracted_parent, " -> ", 5);
@@ -552,8 +557,8 @@ int untar_and_parse(char *filename) {
                 MAXPATH - strlen(extracted_parent));
     } else
         strncpy(extracted_parent, filename, strlen(filename) + 1);
-
-    pid = pipe_and_fork(&pipe, 1);
+*/
+    pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
         /* Child */
         devnull = open("/dev/null", O_WRONLY);
@@ -569,11 +574,9 @@ int untar_and_parse(char *filename) {
         fprintf(stderr, "\n%s\n", "untar_and_parse: failed to pipe and fork\n");
         exit(ENOSYS);
     }
-
     // Now that we've unzipped, let's parse that folder and then delete it
     proc_dir_list(temp_folder);
-
-    // Cleanup
+	// Cleanup
     remove_directory(temp_folder);
     free(temp_folder);
 
@@ -667,6 +670,7 @@ void remove_directory(char *dir) {
         // Get each entry
         strncat(curr_path, d->d_name, MAXPATH);
         err = get_file_stat(curr_path, &fstat);
+        
         if (err == -1) {
             if (errno == ENOENT)
                 fprintf(stderr, "proc_dir_list: file %s not found, can't stat\n", curr_path);
@@ -678,7 +682,10 @@ void remove_directory(char *dir) {
 
         // Do the removing
         if ((fstat.st_mode & S_IFMT) == S_IFDIR)
+        {
+        	strcat(curr_path, "/");
             remove_directory(curr_path);
+        }
         else if ((fstat.st_size > 0) && ((fstat.st_mode & S_IFMT) == S_IFREG))
             unlink(curr_path);
 
