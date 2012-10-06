@@ -226,7 +226,7 @@ file_type detect_file_type(char *filename) {
                     type = ZIP;
             }
             else if (strstr(file_cmd_output, "application/x-gzip") != NULL)
-                type = ZIP;
+                type = GZIP;
             else if (strstr(file_cmd_output, "application/xml") != NULL)
                 type = XML;
             else if (strstr(file_cmd_output, "opendocument.text-template") != NULL)
@@ -253,6 +253,7 @@ file_type detect_file_type(char *filename) {
                 type = BINARY;
             else {
                 fprintf(stderr, "%s\n", file_cmd_output);
+            else
                 type = UNKNOWN;
             }
         }
@@ -427,6 +428,163 @@ int unzip_and_parse(char *filename) {
         extracted_parent[0] = 0;
 
     return 0;
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  gunzip_and_parse
+ *
+ *  Description:  Extract files from gzip archive, parse the contents and return
+ *                the number of PANs found within.
+ * 
+ *      Version:  0.0.1
+ *       Params:  char *filename
+ *      Returns:  int
+ *                    0 on success
+ *                    exit(errno) otherwise
+ *        Usage:  gunzip_and_parse( char *filename )
+ *      Outputs:  N/A
+
+ *        Notes:  Due to where this method is always called from, there is no
+ *                argument checking. Filename is assumed to be non-null
+ * =============================================================================
+ */
+int gunzip_and_parse(char *filename) {
+    char parent[MAXPATH];
+    pid_t pid;
+    int pipe, gunzipped_file, devnull, total;
+	
+    char template[] = "ccsrch-tmp_file-XXXXXX";
+    char *temp_file;
+
+    temp_file = (char*)mktemp(template);
+
+    if (temp_file == NULL) {
+        fprintf(stderr, "gunzip_and_parse: unable to create tmp folder\n");
+        return 0;
+    }
+	fprintf(stdout, "%s", temp_file);
+    // Extracted file attribution. Need to remember parent if necessary
+    parent[0] = 0;
+    if (extracted_parent[0] != 0) {
+        strncpy(parent, extracted_parent, MAXPATH);
+        strncat(extracted_parent, " -> ", 5);
+        strncat(extracted_parent, index(filename, '/'),
+                MAXPATH - strlen(extracted_parent));
+    } else
+        strncpy(extracted_parent, filename, strlen(filename) + 1);
+
+    pid = pipe_and_fork(&pipe, 1);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        gunzipped_file = open(temp_file, O_RDWR|O_CREAT, 0666);
+        devnull = open("/dev/null", O_WRONLY);
+        dup2(gunzipped_file, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        execlp("gunzip", "gunzip", "-c", "-f", filename, NULL);
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        wait(NULL);
+        close(pipe);
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "gunzip_and_parse: failed to pipe and fork\n");
+        exit(ENOSYS);
+    }
+
+    // Now that we've gunzipped, let's parse that file and then delete it
+    total = ccsrch(temp_file);
+
+    // Cleanup
+    remove(temp_file);
+    free(temp_file);
+
+    extracted_archive_count++;
+    if (parent[0] != 0)
+        strncpy(extracted_parent, parent, MAXPATH);
+    else
+        extracted_parent[0] = 0;
+
+    return total;
+    
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  untar_and_parse
+ *
+ *  Description:  Extract files from tar archive, parse the contents and return
+ *                the number of PANs found within.
+ * 
+ *      Version:  0.0.1
+ *       Params:  char *filename
+ *      Returns:  int
+ *                    0 on success
+ *                    exit(errno) otherwise
+ *        Usage:  untar_and_parse( char *filename )
+ *      Outputs:  N/A
+
+ *        Notes:  Due to where this method is always called from, there is no
+ *                argument checking. Filename is assumed to be non-null
+ * =============================================================================
+ */
+int untar_and_parse(char *filename) {
+   	char parent[MAXPATH];
+    pid_t pid;
+    int pipe, devnull, total;
+	
+    char template[] = "ccsrch-tmp_folder-XXXXXX";
+    char *temp_folder;
+
+    temp_folder = (char*)mkdtemp(template);
+
+    if (temp_folder == NULL) {
+        fprintf(stderr, "untar_and_parse: unable to create tmp folder\n");
+        return 0;
+    }
+
+    // Extracted file attribution. Need to remember parent if necessary
+    parent[0] = 0;
+    if (extracted_parent[0] != 0) {
+        strncpy(parent, extracted_parent, MAXPATH);
+        strncat(extracted_parent, " -> ", 5);
+        strncat(extracted_parent, index(filename, '/'),
+                MAXPATH - strlen(extracted_parent));
+    } else
+        strncpy(extracted_parent, filename, strlen(filename) + 1);
+
+    pid = pipe_and_fork(&pipe, 1);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        devnull = open("/dev/null", O_WRONLY);
+        dup2(devnull, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        execlp("tar", "tar", "-xvf", filename, "-C", temp_folder, NULL);
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        wait(NULL);
+        close(pipe);
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "untar_and_parse: failed to pipe and fork\n");
+        exit(ENOSYS);
+    }
+
+    // Now that we've unzipped, let's parse that folder and then delete it
+    proc_dir_list(temp_folder);
+
+    // Cleanup
+    remove_directory(temp_folder);
+    free(temp_folder);
+
+    extracted_archive_count++;
+    if (parent[0] != 0)
+        strncpy(extracted_parent, parent, MAXPATH);
+    else
+        extracted_parent[0] = 0;
+
+    return 0;
+    
 }
 
 /* 

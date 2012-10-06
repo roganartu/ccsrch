@@ -302,11 +302,15 @@ ccsrch(char *filename)
   infd = fileno(in);
   currfilename = filename;
   byte_offset=1;
+<<<<<<< HEAD
 
   // Ensure that char skip array is reset to normal for each parse. Onus is on
   // file type handling to set it up every time they need to
   reset_skip_chars();
 
+=======
+  
+>>>>>>> added gunzip and tar.
   switch (detect_file_type(filename)) {
     case ASCII:
     case UNKNOWN:
@@ -321,13 +325,13 @@ ccsrch(char *filename)
       // Untar to temp and add to search path. Still want to skip the archive
       // Recursively search. Just keep calling ccsrch method on extracted files
       // before deleting them
-      return 1;
+      return untar_and_parse(filename);
     case ZIP:
       // Unzip to temp and add to search path. Still skip the archive
       return unzip_and_parse(filename);
     case GZIP:
       // Unzip to temp and add to search path. Still skip the archive
-      return 1;
+      return gunzip_and_parse(filename);
     case MS_WORD:
       // Do something specific with word
       break;

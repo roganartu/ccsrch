@@ -99,6 +99,10 @@ bool in_skipped_arr(char check);
 
 int unzip_and_parse(char *filename);
 
+int gunzip_and_parse(char *filename);
+
+int untar_and_parse(char *filename);
+
 void gen_rand_string(char *output, int len);
 
 void remove_directory(char *dir);
