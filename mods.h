@@ -75,6 +75,10 @@ typedef enum FILE_TYPES {
     ZIP,
     GZIP,
     TAR,
+    ODT,
+    OTT,
+    ODS,
+    OTS,
     SELF_LOG,
     UNKNOWN
 } file_type;

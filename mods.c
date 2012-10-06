@@ -154,6 +154,10 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
  *                bool false otherwise
  *        Usage:  detect_file_type( char *filename )
  *      Outputs:  N/A
+ *
+ *        Notes:  
+ *                Open Office mime types from:
+ *                  http://www.openoffice.org/framework/documentation/mimetypes/mimetypes.html
  * =============================================================================
  */
 file_type detect_file_type(char *filename) {
@@ -211,6 +215,15 @@ file_type detect_file_type(char *filename) {
                 type = ZIP;
             else if (strstr(file_cmd_output, "XML") != NULL)
                 type = XML;
+            else if (strstr(file_cmd_output, "OpenDocument Text Template") != NULL)
+                type = OTT;
+            else if (strstr(file_cmd_output, "OpenDocument Text") != NULL)
+                type = ODT;
+            else if (strstr(file_cmd_output, "OpenDocument Template") != NULL ||
+                    strstr(file_cmd_output, "OpenDocument Spreadsheet Template") != NULL)
+                type = OTS;
+            else if (strstr(file_cmd_output, "OpenDocument Spreadsheet") != NULL)
+                type = ODS;
             else
                 type = UNKNOWN;
         }
