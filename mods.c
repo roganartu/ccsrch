@@ -370,7 +370,6 @@ int unzip_and_parse(char *filename) {
     char *temp_folder, parent[MAXPATH];
     pid_t pid;
     int pipe, devnull;
-
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
@@ -451,14 +450,12 @@ int unzip_and_parse(char *filename) {
 int gunzip_and_parse(char *filename) {
     char parent[MAXPATH];
     pid_t pid;
-    int pipe, gunzipped_file, devnull, total;
-
+    int pipe, gunzipped_file, devnull, total, temp_file;
     char template[] = "ccsrch-tmp_file-XXXXXX";
-    int temp_file;
 
     temp_file = mkstemp(template);
 
-    if (temp_file == NULL) {
+    if (temp_file < 1) {
         fprintf(stderr, "gunzip_and_parse: unable to create tmp folder\n");
         return 0;
     }
@@ -523,10 +520,9 @@ int gunzip_and_parse(char *filename) {
  * =============================================================================
  */
 int untar_and_parse(char *filename) {
-    char parent[MAXPATH];
+    char parent[MAXPATH], *temp_folder;
     pid_t pid;
     int pipe, devnull, total;
-
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
@@ -534,7 +530,7 @@ int untar_and_parse(char *filename) {
         return 0;
     }
 
-    char *temp_folder = malloc(26);
+    temp_folder = malloc(26);
     memset(temp_folder, '\0', 26);
     strcat(temp_folder, template);
     strcat(temp_folder, "/");
@@ -597,7 +593,7 @@ int untar_and_parse(char *filename) {
  *      Returns:  void
  *        Usage:  remove_directory( char *dir )
  *      Outputs:  N/A
-
+ *
  *        Notes:  
  * =============================================================================
  */
