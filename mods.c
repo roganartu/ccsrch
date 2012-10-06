@@ -371,7 +371,7 @@ bool in_skipped_arr(char check) {
 int unzip_and_parse(char *filename) {
     char *temp_folder, parent[MAXPATH];
     pid_t pid;
-    int pipe, devnull;
+    int pipe, devnull, statval, exit_code;
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
@@ -406,7 +406,15 @@ int unzip_and_parse(char *filename) {
         execlp("unzip", "unzip", "-o", "-d", temp_folder, filename, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
-        wait(NULL);
+        exit_code = 0;
+        
+        wait(&statval);
+        if(WIFEXITED(statval))
+        	exit_code = WEXITSTATUS(statval);
+        
+        if (exit_code != 0){
+            printf("failed to extract file %s\n", filename);
+        } 
         close(pipe);
     } else {
         /* Fork failed */
@@ -452,7 +460,7 @@ int unzip_and_parse(char *filename) {
 int gunzip_and_parse(char *filename) {
     char parent[MAXPATH];
     pid_t pid;
-    int pipe, gunzipped_file, devnull, total, temp_file;
+    int pipe, gunzipped_file, devnull, total, temp_file, statval, exit_code;
     char template[] = "ccsrch-tmp_file-XXXXXX";
 
     temp_file = mkstemp(template);
@@ -478,7 +486,15 @@ int gunzip_and_parse(char *filename) {
         execlp("gunzip", "gunzip", "-c", "-f", filename, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
-        wait(NULL);
+         exit_code = 0;
+        
+        wait(&statval);
+        if(WIFEXITED(statval))
+        	exit_code = WEXITSTATUS(statval);
+        
+        if (exit_code != 0){
+            printf("failed to extract file %s\n", filename);
+        } 
         close(pipe);
     } else {
         /* Fork failed */
@@ -524,7 +540,7 @@ int gunzip_and_parse(char *filename) {
 int untar_and_parse(char *filename) {
     char parent[MAXPATH], *temp_folder;
     pid_t pid;
-    int pipe, devnull, total;
+    int pipe, devnull, total, statval, exit_code;
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
@@ -558,7 +574,15 @@ int untar_and_parse(char *filename) {
         execlp("tar", "tar", "-xvf", filename, "-C", temp_folder, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
-        wait(NULL);
+        exit_code = 0;
+        
+        wait(&statval);
+        if(WIFEXITED(statval))
+        	exit_code = WEXITSTATUS(statval);
+        
+        if (exit_code != 0){
+            printf("failed to extract file %s\n", filename);
+        } 
         close(pipe);
     } else {
         /* Fork failed */
