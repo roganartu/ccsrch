@@ -72,7 +72,7 @@ card numbers:
 2. Card numbers must be contiguous. The only characters ignored when processing the files are carriage returns, new line feeds, and nulls.
 3. Files are treated as raw binary objects and processed one character at a time.
 4. Solo and Switch cards are not processed in the prefix search.
-5. Compressed or encoded files are NOT uncompressed or decoded in this version. These files should be identified separately and the program run on the decompressed or decoded versions.
+5. gzip, zip and tar archives are extracted and the archive files processed. Any other archive types must be manually extracted and checked.
 
 **Prefix Logic**  
 The following prefixes are used to validate the potential card numbers that have passed the mod 10 (Luhn) algorithm check.
