@@ -160,6 +160,14 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.0.6 (Oct. 6, 2012):
+
+* Added shortcut option
+* Fixed unzip occasionally handing at prompt
+* Added more file type detections
+* Changed core of file type detection to use mime types instead of file tool strings
+* Fixed bug with handling of absolute search paths
+
 1.0.5 (Oct. 6, 2012):
 
 * Modified character ignore logic to allow dynamic modification of ignore characters, depending on filetype.
