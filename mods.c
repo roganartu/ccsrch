@@ -251,10 +251,8 @@ file_type detect_file_type(char *filename) {
             // This should stay last. Other legitimate mime types often use this charset
             else if (strstr(file_cmd_output, "charset=binary") != NULL)
                 type = BINARY;
-            else {
-                fprintf(stderr, "%s\n", file_cmd_output);
+            else
                 type = UNKNOWN;
-            }
         }
 
         // Clean up
@@ -390,9 +388,11 @@ int unzip_and_parse(char *filename) {
     parent[0] = 0;
     if (extracted_parent[0] != 0) {
         strncpy(parent, extracted_parent, MAXPATH);
-        strncat(extracted_parent, " -> ", 5);
-        strncat(extracted_parent, index(filename, '/'),
-                MAXPATH - strlen(extracted_parent));
+        if (index(filename, '/') != NULL) {
+            strncat(extracted_parent, " -> ", 5);
+            strncat(extracted_parent, index(filename, '/'),
+                    MAXPATH - strlen(extracted_parent));
+        }
     } else
         strncpy(extracted_parent, filename, strlen(filename) + 1);
 
@@ -412,7 +412,7 @@ int unzip_and_parse(char *filename) {
         fprintf(stderr, "\n%s\n", "unzip_and_parse: failed to pipe and fork\n");
         exit(ENOSYS);
     }
-    
+
     // Now that we've unzipped, let's parse that folder and then delete it
     proc_dir_list(randdir);
 
@@ -452,33 +452,29 @@ int gunzip_and_parse(char *filename) {
     char parent[MAXPATH];
     pid_t pid;
     int pipe, gunzipped_file, devnull, total;
-	
-    char template[] = "ccsrch-tmp_file-XXXXXX";
-    char *temp_file;
 
-    temp_file = (char*)mktemp(template);
+    char template[] = "ccsrch-tmp_file-XXXXXX";
+    int temp_file;
+
+    temp_file = mkstemp(template);
 
     if (temp_file == NULL) {
         fprintf(stderr, "gunzip_and_parse: unable to create tmp folder\n");
         return 0;
     }
-	fprintf(stdout, "%s", temp_file);
+
     // Extracted file attribution. Need to remember parent if necessary
     parent[0] = 0;
-    if (extracted_parent[0] != 0) {
+    if (extracted_parent[0] != 0)
         strncpy(parent, extracted_parent, MAXPATH);
-        strncat(extracted_parent, " -> ", 5);
-        strncat(extracted_parent, index(filename, '/'),
-                MAXPATH - strlen(extracted_parent));
-    } else
+    else
         strncpy(extracted_parent, filename, strlen(filename) + 1);
 
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
         /* Child */
-        gunzipped_file = open(temp_file, O_RDWR|O_CREAT, 0666);
         devnull = open("/dev/null", O_WRONLY);
-        dup2(gunzipped_file, STDOUT_FILENO);
+        dup2(temp_file, STDOUT_FILENO);
         dup2(devnull, STDERR_FILENO);
         execlp("gunzip", "gunzip", "-c", "-f", filename, NULL);
     } else if (pid > (pid_t) 0) {
@@ -492,11 +488,12 @@ int gunzip_and_parse(char *filename) {
     }
 
     // Now that we've gunzipped, let's parse that file and then delete it
-    total = ccsrch(temp_file);
+    total = ccsrch(template);
 
     // Cleanup
-    remove(temp_file);
-    
+    close(temp_file);
+    remove(template);
+
     extracted_archive_count++;
     if (parent[0] != 0)
         strncpy(extracted_parent, parent, MAXPATH);
@@ -504,7 +501,6 @@ int gunzip_and_parse(char *filename) {
         extracted_parent[0] = 0;
 
     return total;
-    
 }
 
 /* 
@@ -527,36 +523,34 @@ int gunzip_and_parse(char *filename) {
  * =============================================================================
  */
 int untar_and_parse(char *filename) {
-   	char parent[MAXPATH];
+    char parent[MAXPATH];
     pid_t pid;
     int pipe, devnull, total;
-	
+
     char template[] = "ccsrch-tmp_folder-XXXXXX";
-    char *temp_folder_name;
-    temp_folder_name = (char*)mkdtemp(template);
-	
-    if (temp_folder_name == NULL) {
+
+    if (mkdtemp(template) == NULL) {
         fprintf(stderr, "untar_and_parse: unable to create tmp folder\n");
         return 0;
     }
-    
-    char *temp_folder = (char*)malloc(sizeof(char) * 26);
 
+    char *temp_folder = malloc(26);
     memset(temp_folder, '\0', 26);
-	strcat(temp_folder, temp_folder_name);
-	strcat(temp_folder, "/");
-	
-	
+    strcat(temp_folder, template);
+    strcat(temp_folder, "/");
+
     // Extracted file attribution. Need to remember parent if necessary
-/*    parent[0] = 0;
+    parent[0] = 0;
     if (extracted_parent[0] != 0) {
         strncpy(parent, extracted_parent, MAXPATH);
-        strncat(extracted_parent, " -> ", 5);
-        strncat(extracted_parent, index(filename, '/'),
-                MAXPATH - strlen(extracted_parent));
+        if (index(filename, '/') != NULL) {
+            strncat(extracted_parent, " -> ", 5);
+            strncat(extracted_parent, index(filename, '/'),
+                    MAXPATH - strlen(extracted_parent));
+        }
     } else
         strncpy(extracted_parent, filename, strlen(filename) + 1);
-*/
+
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
         /* Child */
@@ -573,9 +567,11 @@ int untar_and_parse(char *filename) {
         fprintf(stderr, "\n%s\n", "untar_and_parse: failed to pipe and fork\n");
         exit(ENOSYS);
     }
+
     // Now that we've unzipped, let's parse that folder and then delete it
     proc_dir_list(temp_folder);
-	// Cleanup
+
+    // Cleanup
     remove_directory(temp_folder);
     free(temp_folder);
 
@@ -586,7 +582,7 @@ int untar_and_parse(char *filename) {
         extracted_parent[0] = 0;
 
     return 0;
-    
+
 }
 
 /* 
@@ -682,11 +678,11 @@ void remove_directory(char *dir) {
         // Do the removing
         if ((fstat.st_mode & S_IFMT) == S_IFDIR)
         {
-        	strcat(curr_path, "/");
+            strcat(curr_path, "/");
             remove_directory(curr_path);
         }
         else if ((fstat.st_size > 0) && ((fstat.st_mode & S_IFMT) == S_IFREG))
-            unlink(curr_path);
+            remove(curr_path);
 
         // Reset the current path back to the base directory
         curr_path[dir_len] = '\0';

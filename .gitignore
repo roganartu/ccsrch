@@ -17,3 +17,6 @@ test
 
 # Log files
 *.log
+
+# Non-cleaned up temp files
+ccsrch-tmp*
