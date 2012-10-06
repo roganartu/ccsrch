@@ -105,4 +105,6 @@ void remove_directory(char *dir);
 
 static char *last_strstr(const char *haystack, const char *needle);
 
+int convert_and_parse_pdf(char *filename);
+
 #endif

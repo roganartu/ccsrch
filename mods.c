@@ -226,6 +226,8 @@ file_type detect_file_type(char *filename) {
                 type = GZIP;
             else if (strstr(file_cmd_output, "application/xml") != NULL)
                 type = XML;
+            else if (strstr(file_cmd_output, "application/pdf") != NULL)
+                type = PDF;
             else if (strstr(file_cmd_output, "opendocument.text-template") != NULL)
                 type = OTT;
             else if (strstr(file_cmd_output, "opendocument.text") != NULL)
@@ -656,6 +658,75 @@ void remove_directory(char *dir) {
     free(curr_path);
 
     rmdir(dir);
+}
+
+/*
+ * ===  FUNCTION  ==============================================================
+ *         Name: convert_and_parse_pdf
+ *
+ *  Description: Converts PDF file, parses and returns the number of PANs found
+ *
+ *      Version: 0.0.1
+ *       Params: char *filename
+ *      Returns: int status
+ *                   0 on success
+ *                   exit(errno) otherwise
+ *        Usage: convert_and_parse_pdf( char *filename)
+ *      Outputs: N/A
+ *
+ *        Notes: Due to where this method is always called from, there is no
+ *               argument checking. Filename is assumed to be non-null
+ *
+ * =============================================================================
+ */
+int convert_and_parse_pdf(char *filename) {
+    char parent[MAXPATH];
+    pid_t pid;
+    int pipe, devnull, total, temp_file;
+    char template[] = "ccsrch-tmp_file-XXXXXX";
+
+
+    temp_file = mkstemp(template);
+
+    if (temp_file < 1) {
+        fprintf(stderr, "convert_and_parse_pdf: unable to create temp file\n");
+        return 0;
+    }
+
+    // Extracted file attribution. Need to remember parent if necessary
+    parent[0] = 0;
+    strncpy(parent, extracted_parent, MAXPATH);
+    strncpy(extracted_parent, filename, strlen(filename) + 1);
+
+    pid = pipe_and_fork(&pipe, true);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        dup2(devnull, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        execlp("pdftotext", "pdftotext", filename, template, NULL);
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        wait(NULL);
+        close(pipe);
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "convert_and_parse_pdf: failed to pipe and fork\n");
+        exit(ENOSYS);
+    }
+
+    // Now that we've scanned the pdf to txt, let's parse that file and then delete it
+    total = ccsrch(template);
+
+    // Cleanup
+    close(temp_file);
+    remove(template);
+
+    if (parent[0] != 0)
+        strncpy(extracted_parent, parent, MAXPATH);
+    else
+        extracted_parent[0] = 0;
+
+    return total;
 }
 
 /*

@@ -338,9 +338,9 @@ ccsrch(char *filename)
       break;
     case MS_EXCELX:
       // Do something specific with new excel docs
-    case PDF:
-      // Do something specific with PDF
       break;
+    case PDF:
+      return convert_and_parse_pdf(filename);
     case XML:
       // Do something specific with XML files. Likely includes skipping opening
       // and closing tags.
