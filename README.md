@@ -160,6 +160,11 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.0.7 (Oct. 7, 2012):
+
+* Added gzip and tar handling
+* Added PDF handling
+
 1.0.6 (Oct. 6, 2012):
 
 * Added shortcut option
