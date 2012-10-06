@@ -402,7 +402,7 @@ int unzip_and_parse(char *filename) {
         devnull = open("/dev/null", O_WRONLY);
         dup2(devnull, STDOUT_FILENO);
         dup2(devnull, STDERR_FILENO);
-        execlp("unzip", "unzip", "-d", randdir, filename, NULL);
+        execlp("unzip", "unzip", "-o", "-d", randdir, filename, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
         wait(NULL);
