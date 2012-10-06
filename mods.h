@@ -71,6 +71,7 @@ typedef enum FILE_TYPES {
     MS_WORD,
     MS_EXCEL,
     PDF,
+    XML,
     ZIP,
     GZIP,
     TAR,

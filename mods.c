@@ -143,7 +143,7 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
  * ===  FUNCTION  ==============================================================
  *         Name:  detect_file_type
  *
- *  Description:  Detects filetype of given file and returns true if we should
+ *  Description:  Detects file type of given file and returns true if we should
  *                skip it and false otherwise.
  *                Forks and calls file from command line. Parses result to
  *                determine file type.
@@ -209,6 +209,8 @@ file_type detect_file_type(char *filename) {
                 type = TAR;
             else if (strstr(file_cmd_output, "Zip archive data") != NULL)
                 type = ZIP;
+            else if (strstr(file_cmd_output, "XML") != NULL)
+                type = XML;
             else
                 type = UNKNOWN;
         }

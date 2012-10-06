@@ -336,6 +336,10 @@ ccsrch(char *filename)
     case PDF:
       // Do something specific with PDF
       break;
+    case XML:
+      // Do something specific with XML files. Likely includes skipping opening
+      // and closing tags.
+      break;
     case SELF_LOG:
       // TODO Print that we're skipping the log.
       return 1;
