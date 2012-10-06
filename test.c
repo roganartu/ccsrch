@@ -454,7 +454,7 @@ void image_file_detection(FILE *output) {
             found = false;
             while (in_out != NULL && !feof(in_out)) {
                 fgets(buffer, 80, in_out);
-                if (strstr(buffer, "Binary types skipped->\t\t1") != NULL) {
+                if (strstr(buffer, "Binary types skipped ->\t\t1") != NULL) {
                     found = true;
                     break;
                 }
@@ -531,7 +531,7 @@ void ignore_char_detection(FILE *output) {
             found = false;
             while (in_out != NULL && !feof(in_out)) {
                 fgets(buffer, 80, in_out);
-                if (strstr(buffer, "Credit card matches->\t\t3") != NULL) {
+                if (strstr(buffer, "Credit card matches ->\t\t3") != NULL) {
                     found = true;
                     break;
                 }
