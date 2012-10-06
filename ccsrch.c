@@ -303,6 +303,10 @@ ccsrch(char *filename)
   currfilename = filename;
   byte_offset=1;
 
+  // Ensure that char skip array is reset to normal for each parse. Onus is on
+  // file type handling to set it up every time they need to
+  reset_skip_chars();
+
   switch (detect_file_type(filename)) {
     case ASCII:
     case UNKNOWN:
