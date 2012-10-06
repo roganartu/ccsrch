@@ -253,7 +253,6 @@ file_type detect_file_type(char *filename) {
                 type = BINARY;
             else {
                 fprintf(stderr, "%s\n", file_cmd_output);
-            else
                 type = UNKNOWN;
             }
         }
