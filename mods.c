@@ -74,9 +74,6 @@ bool initialise_mods() {
     skipchars = NULL;
     reset_skip_chars();
 
-    // Random number seed for file extraction folder naming
-    nextrnd = 1;
-
     // Zip file parent tracking
     extracted_parent[0] = 0;
 
@@ -370,19 +367,22 @@ bool in_skipped_arr(char check) {
  * =============================================================================
  */
 int unzip_and_parse(char *filename) {
-    char *randdir, parent[MAXPATH];
+    char *temp_folder, parent[MAXPATH];
     pid_t pid;
     int pipe, devnull;
 
-    randdir = malloc(18);
-    if (randdir == NULL) {
-        fprintf(stderr, "unzip_and_parse: unable to allocate memory: err=%d\n",
-                errno);
-        exit(ENOMEM);
-    }
-    memset(randdir, '\0', 18);
+    char template[] = "ccsrch-tmp_folder-XXXXXX";
 
-    gen_rand_string(randdir, 16);
+    if (mkdtemp(template) == NULL) {
+        fprintf(stderr, "unzip_and_parse: unable to create temp directory: err=%d\n",
+                errno);
+        return 0;
+    }
+
+    temp_folder = malloc(26);
+    memset(temp_folder, '\0', 26);
+    strcat(temp_folder, template);
+    strcat(temp_folder, "/");
 
     // Extracted file attribution. Need to remember parent if necessary
     parent[0] = 0;
@@ -402,7 +402,7 @@ int unzip_and_parse(char *filename) {
         devnull = open("/dev/null", O_WRONLY);
         dup2(devnull, STDOUT_FILENO);
         dup2(devnull, STDERR_FILENO);
-        execlp("unzip", "unzip", "-o", "-d", randdir, filename, NULL);
+        execlp("unzip", "unzip", "-o", "-d", temp_folder, filename, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
         wait(NULL);
@@ -414,11 +414,11 @@ int unzip_and_parse(char *filename) {
     }
 
     // Now that we've unzipped, let's parse that folder and then delete it
-    proc_dir_list(randdir);
+    proc_dir_list(temp_folder);
 
     // Cleanup
-    remove_directory(randdir);
-    free(randdir);
+    remove_directory(temp_folder);
+    free(temp_folder);
 
     extracted_archive_count++;
     if (parent[0] != 0)
@@ -583,37 +583,6 @@ int untar_and_parse(char *filename) {
 
     return 0;
 
-}
-
-/* 
- * ===  FUNCTION  ==============================================================
- *         Name:  gen_rand_string
- *
- *  Description:  Generate a random string of length len
- *                output must be a char* of at least length len + 2. A random
- *                string length len is generated and saved to ouput plus a
- *                backslash and a terminating NULL char.
- * 
- *      Version:  0.0.1
- *       Params:  char *output
- *                int len
- *      Returns:  void
- *        Usage:  gen_rand_string( char *output, int len )
- *      Outputs:  N/A
-
- *        Notes:  
- * =============================================================================
- */
-void gen_rand_string(char *output, int len) {
-    int i;
-    char *from = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    srand(nextrnd++);
-    for ( i = 0; i < len; i++ ) {
-        output[i] = from[rand() % strlen(from) - 1];
-    }
-    output[len] = '/';
-    output[len + 1] = 0;
 }
 
 /* 

@@ -59,8 +59,6 @@ int extracted_archive_count;
 int skipchar_count;
 char *skipchars;
 
-int nextrnd;
-
 char extracted_parent[MAXPATH];
 
 typedef enum FILE_TYPES {
@@ -102,8 +100,6 @@ int unzip_and_parse(char *filename);
 int gunzip_and_parse(char *filename);
 
 int untar_and_parse(char *filename);
-
-void gen_rand_string(char *output, int len);
 
 void remove_directory(char *dir);
 
