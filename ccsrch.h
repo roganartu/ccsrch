@@ -51,6 +51,8 @@
 extern int errno;
 int cardbuf[CARDSIZE];
 long file_count;
+int opt_shortcut;
+int shortcut_breakout;
 
 int ccsrch (char *str);
 int check_mastercard_16(long offset);

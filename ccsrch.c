@@ -160,6 +160,10 @@ print_result(char *cardname, int cardlen, long byte_offset)
     fprintf(stdout, "%s\n", buf);
 
   total_count++;
+
+  // Abide by shortcut option
+  if (opt_shortcut)
+    shortcut_breakout = 1;
 #endif
 }
 
@@ -425,6 +429,13 @@ ccsrch(char *filename)
       }
       byte_offset++;
       ccsrch_index++;
+
+      // Abide by shortcut option
+      if (shortcut_breakout) {
+        shortcut_breakout = 0;
+        fclose(in);
+        return total;
+      }
     }
   }
 
@@ -882,7 +893,11 @@ main(int argc, char *argv[])
   if (!initialise_mods())
     exit(-1);
 
-  while ((c = getopt(argc, argv,"befjt:To:")) != -1)
+  // Default shortcut option
+  opt_shortcut = 0;
+  shortcut_breakout = 0;
+
+  while ((c = getopt(argc, argv,"befjt:To:s")) != -1)
   {
     switch (c)
     {
@@ -915,6 +930,9 @@ main(int argc, char *argv[])
       tracksrch=1;
       tracktype1=1;
       tracktype2=1;
+      break;
+    case 's':
+      opt_shortcut = 1;
       break;
     case 'h':
     default:
