@@ -574,8 +574,8 @@ void ignore_char_detection(FILE *output) {
  *      Version:  0.0.1
  *       Params:  FILE *output
  *      Returns:  void
- *        Usage:  ignore_char_detection( FILE *output )
- *      Outputs:  Ignore character detection test results
+ *        Usage:  compression_tests( FILE *output )
+ *      Outputs:  Compression test results
  * =============================================================================
  */
 void compression_tests(FILE *output) {
