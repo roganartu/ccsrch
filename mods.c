@@ -75,7 +75,8 @@ bool initialise_mods() {
     reset_skip_chars();
 
     // Zip file parent tracking
-    extracted_parent[0] = 0;
+    memset(extracted_parent, '\0', MAXPATH);
+    memset(filetype_parent, '\0', MAXPATH);
 
     return true;
 }
@@ -761,8 +762,17 @@ int convert_and_parse_pdf(char *filename) {
 
     // Extracted file attribution. Need to remember parent if necessary
     parent[0] = 0;
-    strncpy(parent, extracted_parent, MAXPATH);
-    strncpy(extracted_parent, filename, strlen(filename) + 1);
+    if (extracted_parent[0] != 0) {
+        strncpy(parent, extracted_parent, MAXPATH);
+        if (index(filename, '/') != NULL) {
+            strncat(extracted_parent, " -> ", 5);
+            strncat(extracted_parent, index(filename, '/'),
+                    MAXPATH - strlen(extracted_parent));
+        }
+    } else
+        strncpy(extracted_parent, filename, strlen(filename) + 1);
+    // Ensure we treat the file as a PDF
+    strncpy(filetype_parent, filename, strlen(filename) + 1);
 
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
@@ -798,7 +808,8 @@ int convert_and_parse_pdf(char *filename) {
     if (parent[0] != 0)
         strncpy(extracted_parent, parent, MAXPATH);
     else
-        extracted_parent[0] = 0;
+        memset(extracted_parent, '\0', MAXPATH);
+    memset(filetype_parent, '\0', MAXPATH);
 
     return total;
 }
@@ -856,6 +867,8 @@ int parse_xlsx(char *filename) {
         }
     } else
         strncpy(extracted_parent, filename, strlen(filename) + 1);
+    // Ensure we treat the file as a .xlsx
+    strncpy(filetype_parent, filename, strlen(filename) + 1);
 
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
@@ -902,7 +915,8 @@ int parse_xlsx(char *filename) {
     if (parent[0] != 0)
         strncpy(extracted_parent, parent, MAXPATH);
     else
-        extracted_parent[0] = 0;
+        memset(extracted_parent, '\0', MAXPATH);
+    memset(filetype_parent, '\0', MAXPATH);
 
     return 0;
 }
@@ -966,6 +980,8 @@ int parse_docx(char *filename, bool ods) {
         }
     } else
         strncpy(extracted_parent, filename, strlen(filename) + 1);
+    // Ensure we treat the file as a .docx
+    strncpy(filetype_parent, filename, strlen(filename) + 1);
 
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
@@ -1012,7 +1028,8 @@ int parse_docx(char *filename, bool ods) {
     if (parent[0] != 0)
         strncpy(extracted_parent, parent, MAXPATH);
     else
-        extracted_parent[0] = 0;
+        memset(extracted_parent, '\0', MAXPATH);
+    memset(filetype_parent, '\0', MAXPATH);
 
     return 0;
 }

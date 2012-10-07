@@ -91,7 +91,10 @@ print_result(char *cardname, int cardlen, long byte_offset)
     strncpy(print_filename, extracted_parent, MAXPATH);
 
     // Don't display the extracted file name with PDF, Excel, Word or ODS/OTS
-    parent_type = detect_file_type(extracted_parent);
+    if (filetype_parent[0] != 0)
+      parent_type = detect_file_type(filetype_parent);
+    else
+      parent_type = detect_file_type(extracted_parent);
     if (parent_type != PDF && parent_type != MS_EXCELX &&
         parent_type != MS_WORDX && parent_type != ODS && parent_type != OTS &&
         parent_type != ODT && parent_type != OTT) {
@@ -392,7 +395,7 @@ ccsrch(char *filename)
 
   // Get parent type if we're handling like docx
   if (processing_docx)
-    parent_type = detect_file_type(extracted_parent);
+    parent_type = detect_file_type(filetype_parent);
 
   while (1)
   {

@@ -60,6 +60,7 @@ int skipchar_count;
 char *skipchars;
 
 char extracted_parent[MAXPATH];
+char filetype_parent[MAXPATH];
 
 typedef enum FILE_TYPES {
     ASCII,
