@@ -75,6 +75,7 @@ print_result(char *cardname, int cardlen, long byte_offset)
   char		  cdatebuf[CARDTYPELEN];
   char		  trackbuf[MDBUFSIZE];
   char            print_filename[MAXPATH];
+  char            cardpos[MAXPATH];
 
   memset(&nbuf, '\0', 20);
 
@@ -92,6 +93,9 @@ print_result(char *cardname, int cardlen, long byte_offset)
             MAXPATH - strlen(extracted_parent));
   } else
       strncpy(print_filename, currfilename, MAXPATH);
+  // Add in line numbers
+  snprintf(cardpos, MAXPATH, " - Line %ld:%ld", linenos[0], charposs[0]);
+  strncat(print_filename, cardpos, MAXPATH);
 
   /* MB we need to figure out how to update the count and spit out the final filename with the count.  ensure that it gets flushed out on the last match if you are doing a diff between previous filename and new filename */
 
@@ -290,6 +294,8 @@ ccsrch(char *filename)
   int    counter = 0;
   int    total = 0;
   int    check = 0;
+  long   lineno = 1;
+  long   charpos = 1;
 
   memset(&lastfilename,'\0',MAXPATH);
   ccsrch_index=0;
@@ -376,6 +382,8 @@ ccsrch(char *filename)
       {
         check = 1;
         cardbuf[counter] = ((int)ccsrch_buf[ccsrch_index])-48;
+        linenos[counter] = lineno;
+        charposs[counter] = charpos;
         counter++;
       } else if (ccsrch_buf[ccsrch_index] == 0 || in_skipped_arr(ccsrch_buf[ccsrch_index]))
       {
@@ -385,6 +393,12 @@ ccsrch(char *filename)
          * otherwise, restart the count
          */
         check = 0;
+
+        // Increse the current line number when we hit a newline.
+        if (ccsrch_buf[ccsrch_index] == '\n') {
+          lineno++;
+          charpos = 0;
+        }
       } else
       {
         check = 0;
@@ -414,8 +428,10 @@ ccsrch(char *filename)
         for (k = 0; k < counter - 1; k++)
         {
           cardbuf[k] = cardbuf[k + 1];
+          linenos[k] = linenos[k + 1];
+          charposs[k] = charposs[k + 1];
         }
-        cardbuf[k] = (-1);
+        cardbuf[k] = linenos[k] = charposs[k] = (-1);
         luhn_check(13,byte_offset-13);
         luhn_check(14,byte_offset-14);
         luhn_check(15,byte_offset-15);
@@ -423,6 +439,7 @@ ccsrch(char *filename)
         counter--;
       }
       byte_offset++;
+      charpos++;
       ccsrch_index++;
 
       // Abide by shortcut option

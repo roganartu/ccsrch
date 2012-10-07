@@ -53,6 +53,8 @@ int cardbuf[CARDSIZE];
 long file_count;
 int opt_shortcut;
 int shortcut_breakout;
+long linenos[CARDSIZE];
+long charposs[CARDSIZE];
 
 int ccsrch (char *str);
 int check_mastercard_16(long offset);
