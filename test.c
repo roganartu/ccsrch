@@ -73,6 +73,12 @@ int main(int argc, char *argv[]) {
     fprintf(output, "%s\n", "==== Compressed files =======================");
     compression_tests(output);
 
+    fprintf(output, "%s", "\n\n");
+
+    /* PDF files */
+    fprintf(output, "%s\n", "==== PDF files ==============================");
+    pdf_tests(output);
+
     return 0;
 }
 
@@ -634,5 +640,66 @@ void compression_tests(FILE *output) {
             /* Fork failed */
             fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
         }
+    }
+}
+
+/*
+ * ===  FUNCTION  ==============================================================
+ *         Name:  pdf_tests
+ *
+ *  Description:  Verifies that the modified ccsrch successfully detects,
+ *                unpacks and parses PDF Documents.
+ *      Version:  0.0.1
+ *       Params:  FILE *output
+ *      Returns:  void
+ *        Usage:  pdf_tests( FILE *output )
+ *      Outputs:  PDF parsing test results
+ * =============================================================================
+ */
+void pdf_tests(FILE *output) {
+    int num_tests = 4;
+    char buffer[80], test_file[MAXPATH], expected_result[MAXPATH];
+    int i, pipe;
+    pid_t pid;
+    FILE *in_out;
+    bool found;
+
+    /* Initialise as empty strings */
+    for ( i = 0; i < MAXPATH; i++ ) {
+        test_file[i]= '\0';
+        expected_result[i] = '\0';
+    }
+
+    strncpy(test_file, "tests/pdf.pdf", MAXPATH);
+    strncpy(expected_result, "Credit card matches ->\t\t15", MAXPATH);
+   
+    pid = pipe_and_fork(&pipe, true);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        dup2(pipe, STDOUT_FILENO);
+        dup2(pipe, STDERR_FILENO);
+        execl("./ccsrch", "ccsrch", test_file, NULL);
+
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        in_out = fdopen(pipe, "r");
+        found = false;
+        while (in_out != NULL && !feof(in_out)) {
+            fgets(buffer, 80, in_out);
+            if (strstr(buffer, expected_result) != NULL) {
+                found = true;
+                break;
+            }
+        }
+        if (found)
+            fprintf(output, "%s", ".");
+        else
+            fprintf(output, "%s", "F");
+
+        wait(NULL);
+        close(pipe);
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
     }
 }

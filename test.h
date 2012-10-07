@@ -50,4 +50,6 @@ void ignore_char_detection(FILE *output);
 
 void compression_tests(FILE *output);
 
+void pdf_tests(FILE *output);
+
 #endif
