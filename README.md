@@ -170,6 +170,14 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.2.2 (Oct. 8, 2012):
+
+* Fixed bug with display of results when .xlsx, .docx etc were extracted from within an archive
+* General cleanup and refactor
+* Updated Readme to reflect most recent changes
+* Added second detect_file_type pass (omitting the --mime flag) if type resolves to UNKNOWN
+* Added audio filetype detection and expended video detection. Added basic tests
+
 1.2.1 (Oct. 8, 2012):
 
 * Added ODS and OTS Open Document Spreadsheet handling
