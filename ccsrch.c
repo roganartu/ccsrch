@@ -350,26 +350,23 @@ ccsrch(char *filename)
     case ASCII:
     case UNKNOWN:
     case XML:
+    case MS_WORD:
+    case MS_EXCEL:
       // Treat XML files like ASCII. There could be data within tags
+      // Treat old word and excel like ASCII files.
       break;
     case EXECUTABLE:
     case BINARY:
     case IMAGE:
     case VIDEO:
       skipped_executable_count++;
-      return 1;
+      return -1;
     case TAR:
       return untar_and_parse(filename);
     case ZIP:
       return unzip_and_parse(filename);
     case GZIP:
       return gunzip_and_parse(filename);
-    case MS_WORD:
-      // Do something specific with word
-      break;
-    case MS_EXCEL:
-      // Do something specific with excel
-      break;
     case MS_WORDX:
       return parse_docx(filename, false);
     case MS_EXCELX:
@@ -384,9 +381,6 @@ ccsrch(char *filename)
     case OTS:
       // OpenDocument Spreadsheet document - normal and template. Same for both
       return parse_docx(filename, true);
-    case SELF_LOG:
-      // TODO Print that we're skipping the log.
-      return 1;
   }
 
   file_count++;
