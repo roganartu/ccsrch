@@ -110,7 +110,7 @@ int convert_and_parse_pdf(char *filename);
 
 int parse_xlsx(char *filename);
 
-int parse_docx(char *filename);
+int parse_docx(char *filename, bool ods);
 
 bool buf_strstr(char *buf, int index, int cnt, char *needle);
 

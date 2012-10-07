@@ -90,10 +90,10 @@ print_result(char *cardname, int cardlen, long byte_offset)
   if (extracted_parent[0] != 0) {
     strncpy(print_filename, extracted_parent, MAXPATH);
 
-    // Don't display the extracted file name with PDF, Excel or Word
+    // Don't display the extracted file name with PDF, Excel, Word or ODS/OTS
     parent_type = detect_file_type(extracted_parent);
     if (parent_type != PDF && parent_type != MS_EXCELX &&
-        parent_type != MS_WORDX) {
+        parent_type != MS_WORDX && parent_type != ODS && parent_type != OTS) {
       strncat(print_filename, " -> ", 5);
 
       if (index(currfilename, '/') == NULL) {
@@ -365,7 +365,7 @@ ccsrch(char *filename)
       // Do something specific with excel
       break;
     case MS_WORDX:
-      return parse_docx(filename);
+      return parse_docx(filename, false);
     case MS_EXCELX:
       return parse_xlsx(filename);
     case PDF:
@@ -377,7 +377,7 @@ ccsrch(char *filename)
     case ODS:
     case OTS:
       // OpenDocument Spreadsheet document - normal and template. Same for both
-      break;
+      return parse_docx(filename, true);
     case SELF_LOG:
       // TODO Print that we're skipping the log.
       return 1;
@@ -408,8 +408,9 @@ ccsrch(char *filename)
         if (inside_xml_tag) {
           // Check for new lines in word. This could miss some if they span over
           // the end of ccsrch_buf. Likelihood low though
-          if (processing_docx && buf_strstr(ccsrch_buf, ccsrch_index, cnt,
-                      "/w:r>"))
+          if (processing_docx && (buf_strstr(ccsrch_buf, ccsrch_index, cnt,
+                      "/w:r>") || buf_strstr(ccsrch_buf, ccsrch_index, cnt,
+                      "/table:table-row>")))
           {
             lineno++;
             charpos = 1;

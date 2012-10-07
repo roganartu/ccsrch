@@ -841,7 +841,7 @@ int parse_xlsx(char *filename) {
     strcat(temp_folder, template);
     strcat(temp_folder, "/");
     search_file = malloc(strlen(temp_folder) + 21);
-    memset(search_file, '\0', 26);
+    memset(search_file, '\0', strlen(temp_folder) + 21);
     strncpy(search_file, temp_folder, strlen(temp_folder));
     strcat(search_file, "xl/sharedStrings.xml");
 
@@ -914,9 +914,12 @@ int parse_xlsx(char *filename) {
  *  Description:  .docx files behave extremely similar to zip archives. They can
  *                be extracted and then the files within them parsed
  *                individually.
+ *                ODS and Microsoft differ only in location of content xml and
+ *                xml structure. This method can be used for both.
  *
  *      Version:  0.0.1
  *       Params:  char *filename
+ *                bool ods
  *      Returns:  int
  *                    0 on success
  *                    exit(errno) otherwise
@@ -927,7 +930,7 @@ int parse_xlsx(char *filename) {
  *                argument checking. Filename is assumed to be non-null
  * =============================================================================
  */
-int parse_docx(char *filename) {
+int parse_docx(char *filename, bool ods) {
     char parent[MAXPATH], *temp_folder, *search_file;
     pid_t pid;
     int pipe, devnull, total, statval, exit_code;
@@ -935,7 +938,7 @@ int parse_docx(char *filename) {
 
     if (mkdtemp(template) == NULL) {
 #ifdef DEBUG
-        fprintf(stderr, "parse_xlsx: unable to create tmp folder\n");
+        fprintf(stderr, "parse_docx: unable to create tmp folder\n");
 #endif
         return 0;
     }
@@ -945,9 +948,12 @@ int parse_docx(char *filename) {
     strcat(temp_folder, template);
     strcat(temp_folder, "/");
     search_file = malloc(strlen(temp_folder) + 18);
-    memset(search_file, '\0', 26);
+    memset(search_file, '\0', strlen(temp_folder) + 18);
     strncpy(search_file, temp_folder, strlen(temp_folder));
-    strcat(search_file, "word/document.xml");
+    if (ods)
+        strcat(search_file, "content.xml");
+    else
+        strcat(search_file, "word/document.xml");
 
     // Extracted file attribution. Need to remember parent if necessary
     parent[0] = 0;
@@ -980,7 +986,7 @@ int parse_docx(char *filename) {
 
         if (exit_code != 0){
 #ifdef DEBUG
-            fprintf(stderr, "parse_xlsx: failed to extract file %s | exit_code=%d\n",
+            fprintf(stderr, "parse_docx: failed to extract file %s | exit_code=%d\n",
                     filename, exit_code);
 #endif
             return 0;
@@ -988,7 +994,7 @@ int parse_docx(char *filename) {
     } else {
         /* Fork failed */
 #ifdef DEBUG
-        fprintf(stderr, "\n%s\n", "parse_xlsx: failed to pipe and fork\n");
+        fprintf(stderr, "\n%s\n", "parse_docx: failed to pipe and fork\n");
 #endif
         return 0;
     }
