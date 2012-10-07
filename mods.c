@@ -371,7 +371,7 @@ bool in_skipped_arr(char check) {
 int unzip_and_parse(char *filename) {
     char *temp_folder, parent[MAXPATH];
     pid_t pid;
-    int pipe, devnull;
+    int pipe, devnull, statval, exit_code;
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
@@ -406,7 +406,15 @@ int unzip_and_parse(char *filename) {
         execlp("unzip", "unzip", "-o", "-d", temp_folder, filename, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
-        wait(NULL);
+        exit_code = 0;
+
+        wait(&statval);
+        if(WIFEXITED(statval))
+        	exit_code = WEXITSTATUS(statval);
+
+        if (exit_code != 0){
+            fprintf(stderr, "failed to extract file %s\n", filename);
+        }
         close(pipe);
     } else {
         /* Fork failed */
@@ -430,13 +438,13 @@ int unzip_and_parse(char *filename) {
     return 0;
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  gunzip_and_parse
  *
  *  Description:  Extract files from gzip archive, parse the contents and return
  *                the number of PANs found within.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  char *filename
  *      Returns:  int
@@ -452,7 +460,7 @@ int unzip_and_parse(char *filename) {
 int gunzip_and_parse(char *filename) {
     char parent[MAXPATH];
     pid_t pid;
-    int pipe, gunzipped_file, devnull, total, temp_file;
+    int pipe, gunzipped_file, devnull, total, temp_file, statval, exit_code;
     char template[] = "ccsrch-tmp_file-XXXXXX";
 
     temp_file = mkstemp(template);
@@ -478,8 +486,19 @@ int gunzip_and_parse(char *filename) {
         execlp("gunzip", "gunzip", "-c", "-f", filename, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
-        wait(NULL);
+         exit_code = 0;
+
+        wait(&statval);
+        if(WIFEXITED(statval))
+        	exit_code = WEXITSTATUS(statval);
+
         close(pipe);
+
+        if (exit_code != 0){
+            fprintf(stderr, "gunzip_and_parse: failed to extract file %s | exit_code=%d\n",
+                    filename, exit_code);
+            return 0;
+        }
     } else {
         /* Fork failed */
         fprintf(stderr, "\n%s\n", "gunzip_and_parse: failed to pipe and fork\n");
@@ -502,13 +521,13 @@ int gunzip_and_parse(char *filename) {
     return total;
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  untar_and_parse
  *
  *  Description:  Extract files from tar archive, parse the contents and return
  *                the number of PANs found within.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  char *filename
  *      Returns:  int
@@ -524,7 +543,7 @@ int gunzip_and_parse(char *filename) {
 int untar_and_parse(char *filename) {
     char parent[MAXPATH], *temp_folder;
     pid_t pid;
-    int pipe, devnull, total;
+    int pipe, devnull, total, statval, exit_code;
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
@@ -558,8 +577,19 @@ int untar_and_parse(char *filename) {
         execlp("tar", "tar", "-xvf", filename, "-C", temp_folder, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
-        wait(NULL);
+        exit_code = 0;
+
+        wait(&statval);
+        if(WIFEXITED(statval))
+            exit_code = WEXITSTATUS(statval);
+
         close(pipe);
+
+        if (exit_code != 0){
+            fprintf(stderr, "untar_and_parse: failed to extract file %s | exit_code=%d\n",
+                    filename, exit_code);
+            return 0;
+        }
     } else {
         /* Fork failed */
         fprintf(stderr, "\n%s\n", "untar_and_parse: failed to pipe and fork\n");
@@ -684,7 +714,6 @@ int convert_and_parse_pdf(char *filename) {
     pid_t pid;
     int pipe, devnull, total, temp_file;
     char template[] = "ccsrch-tmp_file-XXXXXX";
-
 
     temp_file = mkstemp(template);
 

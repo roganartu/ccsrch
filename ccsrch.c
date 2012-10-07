@@ -654,7 +654,7 @@ check_mastercard_16(long offset)
   int             vnum = 0;
 
   memset(&num2buf, '\0', 3);
-  snprintf(num2buf, 3, "%d%d\0", cardbuf[0], cardbuf[1]);
+  snprintf(num2buf, 3, "%d%d", cardbuf[0], cardbuf[1]);
   vnum = atoi(num2buf);
   if ((vnum > 50) && (vnum < 56))
   {
@@ -671,7 +671,7 @@ check_visa_16(long offset)
   int             vnum = 0;
 
   memset(&num2buf, '\0', 2);
-  snprintf(num2buf, 2, "%d\0", cardbuf[0]);
+  snprintf(num2buf, 2, "%d", cardbuf[0]);
   vnum = atoi(num2buf);
   if (vnum == 4)
   {
@@ -688,7 +688,7 @@ check_discover_16(long offset)
   int             vnum = 0;
 
   memset(&num2buf, '\0', 5);
-  snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
+  snprintf(num2buf, 5, "%d%d%d%d", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if (vnum == 6011)
   {
@@ -705,7 +705,7 @@ check_jcb_16(long offset)
   int             vnum = 0;
 
   memset(&num2buf, '\0', 2);
-  snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
+  snprintf(num2buf, 5, "%d%d%d%d", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if ((vnum == 3088) || (vnum == 3096) || (vnum == 3112) || (vnum == 3158) || (vnum == 3337) || (vnum == 3528) || (vnum == 3529))
   {
@@ -722,7 +722,7 @@ check_amex_15(long offset)
   int             vnum = 0;
 
   memset(&num2buf, '\0', 3);
-  snprintf(num2buf, 3, "%d%d\0", cardbuf[0], cardbuf[1]);
+  snprintf(num2buf, 3, "%d%d", cardbuf[0], cardbuf[1]);
   vnum = atoi(num2buf);
   if ((vnum == 34) || (vnum == 37))
   {
@@ -739,7 +739,7 @@ check_enroute_15(long offset)
   int             vnum = 0;
 
   memset(&num2buf, '\0', 5);
-  snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
+  snprintf(num2buf, 5, "%d%d%d%d", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if ((vnum == 2014) || (vnum == 2149))
   {
@@ -756,7 +756,7 @@ check_jcb_15(long offset)
   int             vnum = 0;
 
   memset(&num2buf, '\0', 5);
-  snprintf(num2buf, 5, "%d%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
+  snprintf(num2buf, 5, "%d%d%d%d", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if ((vnum == 2131) || (vnum == 1800) || (vnum == 3528) || (vnum == 3529))
   {
@@ -776,8 +776,8 @@ check_diners_club_cb_14(long offset)
 
   memset(&num2buf, '\0', 4);
   memset(&num2buf2, '\0', 2);
-  snprintf(num2buf, 4, "%d%d%d\0", cardbuf[0], cardbuf[1], cardbuf[2]);
-  snprintf(num2buf2, 3, "%d%d\0", cardbuf[0], cardbuf[1]);
+  snprintf(num2buf, 4, "%d%d%d", cardbuf[0], cardbuf[1], cardbuf[2]);
+  snprintf(num2buf2, 3, "%d%d", cardbuf[0], cardbuf[1]);
   vnum = atoi(num2buf);
   vnum2 = atoi(num2buf2);
   if (((vnum > 299) && (vnum < 306)) || ((vnum > 379) && (vnum < 389)) || (vnum2 == 36))
@@ -809,9 +809,9 @@ cleanup_shtuff()
   int end_time=0;
 
   end_time=time(NULL);
-  fprintf(stdout, "\n\nFiles searched ->\t\t%d\n", file_count);
+  fprintf(stdout, "\n\nFiles searched ->\t\t%ld\n", file_count);
   fprintf(stdout, "Search time (seconds) ->\t%d\n", ((int)time(NULL) - init_time));
-  fprintf(stdout, "Credit card matches ->\t\t%d\n", total_count);
+  fprintf(stdout, "Credit card matches ->\t\t%ld\n", total_count);
   fprintf(stdout, "Binary types skipped ->\t\t%d\n", skipped_executable_count);
   fprintf(stdout, "Archives extracted ->\t\t%d\n", extracted_archive_count);
   if (tracksrch)
