@@ -322,6 +322,8 @@ ccsrch(char *filename)
   switch (detect_file_type(filename)) {
     case ASCII:
     case UNKNOWN:
+    case XML:
+      // Treat XML files like ASCII. There could be data within tags
       break;
     case EXECUTABLE:
     case BINARY:
@@ -349,10 +351,6 @@ ccsrch(char *filename)
       break;
     case PDF:
       return convert_and_parse_pdf(filename);
-    case XML:
-      // Do something specific with XML files. Likely includes skipping opening
-      // and closing tags.
-      break;
     case ODT:
     case OTT:
       // OpenDocument Text document - normal and template. Same for both
