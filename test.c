@@ -48,49 +48,41 @@ int main(int argc, char *argv[]) {
     /* Sanity checks */
     fprintf(output, "%s\n", "==== Sanity Checks ==========================");
     sanity_checks(output);
-
     fprintf(output, "%s", "\n");
 
     /* Log file detection */
     fprintf(output, "%s\n", "==== Log File Tests =========================");
-    log_file_detection(output);
-
+    run_test(output, SELF_LOG);
     fprintf(output, "%s", "\n\n");
 
     /* Image file detection */
     fprintf(output, "%s\n", "==== Image File Tests =======================");
-    image_file_detection(output);
-
+    run_test(output, IMAGE);
     fprintf(output, "%s", "\n\n");
 
     /* Image file detection */
     fprintf(output, "%s\n", "==== Default Separator Tests ================");
-    ignore_char_detection(output);
-
+    run_test(output, SKIPCHARS);
     fprintf(output, "%s", "\n\n");
 
     /* Compressed files */
     fprintf(output, "%s\n", "==== Compressed files =======================");
-    compression_tests(output);
-
+    run_test(output, ZIP);
     fprintf(output, "%s", "\n\n");
 
     /* PDF files */
     fprintf(output, "%s\n", "==== PDF files ==============================");
-    pdf_tests(output);
-
+    run_test(output, PDF);
     fprintf(output, "%s", "\n\n");
 
     /* .xlsx files */
     fprintf(output, "%s\n", "==== .xlsx files ============================");
-    xlsx_tests(output);
-
-
+    run_test(output, MS_EXCELX);
     fprintf(output, "%s", "\n\n");
 
     /* .docx files */
     fprintf(output, "%s\n", "==== .docx files ============================");
-    docx_tests(output);
+    run_test(output, MS_WORDX);
     return 0;
 }
 
@@ -350,490 +342,241 @@ void sanity_checks(FILE *output) {
 
 /*
  * ===  FUNCTION  ==============================================================
- *         Name:  log_file_detection
+ *         Name:  run_test
  *
- *  Description:  Verifies that the modified ccsrch successfully detects it's
- *                own log file regardless of path
- *                Directory scanned: ./tests
- *                Log file outputs:
- *                    ./tests/log.log
- *                    tests/../tests/log.log
- *                    tests/log.log
- *                    log.log
+ *  Description:  Flexible method for running tests on the ccsrch suite
  *
- *                Tests absolute paths, relative with redundancy, relative,
- *                symlinks and no log file output
+ *                LOG FILE TESTS - Format: SELF_LOG
+ *                    Verifies that the modified ccsrch successfully detects
+ *                    its own log file regardless of path
+ *                    Directory scanned: ./tests
+ *                    Log file outputs:
+ *                        ./tests/log.log
+ *                        tests/../tests/log.log
+ *                        tests/log.log
+ *                        log.log
  *
- *      Version:  0.0.1
- *       Params:  FILE *output
- *      Returns:  void
- *        Usage:  log_file_detection( FILE *output )
- *      Outputs:  Log file detection test results
- * =============================================================================
- */
-void log_file_detection(FILE *output) {
-    int num_tests = 4;
-    char buffer[80], test_logs[num_tests][MAXPATH];
-    int i, j, pipe;
-    pid_t pid;
-    FILE *in_out;
-    bool found;
-
-    /* Initialise as empty strings */
-    for ( i = 0; i < MAXPATH; i++ ) {
-        for ( j = 0; j < num_tests; j++ ) {
-            test_logs[j][i] = '\0';
-        }
-    }
-
-    strncpy(test_logs[0], "./tests/log.log", MAXPATH); /* Absolute path (as best we can) */
-    strncpy(test_logs[1], "tests/../tests/log.log", MAXPATH); /* Weird path */
-    strncpy(test_logs[2], "tests/log.log", MAXPATH); /* Relative path */
-    strncpy(test_logs[3], "tests/log_symlink", MAXPATH); /* Symlink test */
-
-    for ( i = 0; i < num_tests + 1; i++ ) {
-        pid = pipe_and_fork(&pipe, true);
-        if (pid == (pid_t) 0) {
-            /* Child */
-            dup2(pipe, STDOUT_FILENO);
-            dup2(pipe, STDERR_FILENO);
-            if (i < num_tests)
-                execl("./ccsrch", "ccsrch", "-o", test_logs[i], "tests", NULL);
-            else
-                execl("./ccsrch", "ccsrch", "tests", NULL);
-
-        } else if (pid > (pid_t) 0) {
-            /* Parent */
-            in_out = fdopen(pipe, "r");
-            found = false;
-            while (in_out != NULL && !feof(in_out)) {
-                fgets(buffer, 80, in_out);
-                if (strstr(buffer, "Skipping log file: ") != NULL) {
-                    found = true;
-                    break;
-                }
-            }
-            if ((i < num_tests && found) || (i == num_tests && !found))
-                fprintf(output, "%s", ".");
-            else
-                fprintf(output, "%s", "F");
-
-            wait(NULL);
-            close(pipe);
-        } else {
-            /* Fork failed */
-            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
-        }
-    }
-}
-
-/*
- * ===  FUNCTION  ==============================================================
- *         Name:  image_file_detection
+ *                    Tests absolute paths, relative with redundancy, relative,
+ *                    symlinks and no log file output
+ *                
+ *                IMAGE FILE TESTS - Format: IMAGE
+ *                    Verifies that the modified ccsrch successfully detects
+ *                    and skips image files
+ *                    Files scanned: tests/img.jpg
+ *                                   tests/img.png
+ *                                   tests/img.gif
+ *                                   tests/img.not_an_image_extension
+ *                                   tests/not_an_image.jpg
  *
- *  Description:  Verifies that the modified ccsrch successfully detects it's
- *                Files scanned: tests/img.jpg
- *                               tests/img.png
- *                               tests/img.gif
- *                               tests/img.not_an_image_extension
- *                               tests/not_an_image.jpg
+ *                SEPARATOR TESTS - Format: SKIPCHARS
+ *                    Verifies that the modified ccsrch successfully detects and
+ *                    ignores the default ignore characters
+ *                    Tests, in order:
+ *                        space
+ *                        \n
+ *                        \r
+ *                        -
+ *                        combination of above
+ *
+ *                    There should be 3 credit card matches in the given file
+ *                    out of 6 potential PANs
+ *
+ *                COMPRESSION TESTS - Format: ZIP
+ *                    Verifies that the modified ccsrch successfully detects,
+ *                    unpacks and parses compressed files.
+ *                    Tests, in order:
+ *                        tar.gzip
+ *                        mac os zip file
+ *                        zip file
+ *                        zip file containing zip files
+ *
+ *                PDF TESTS - Format: PDF
+ *                    Verifies that the modified ccsrch successfully detects,
+ *                    unpacks and parses PDF Documents.
+ *
+ *                .xlsx TESTS - Format: MS_EXCELX
+ *                    Verifies that the modified ccsrch successfully detects,
+ *                    unpacks and parses xlsx documents.
+ *
+ *                .docx TESTS - Format: MS_WORDX
+ *                    Verifies that the modified ccsrch successfully detects,
+ *                    unpacks and parses docx documents.
  *
  *      Version:  0.0.1
  *       Params:  FILE *output
+ *                file_type type
  *      Returns:  void
- *        Usage:  image_file_detection( FILE *output )
- *      Outputs:  Image file detection test results
+ *        Usage:  run_test( FILE *output, file_type type )
+ *      Outputs:  Test results for given format
  * =============================================================================
  */
-void image_file_detection(FILE *output) {
-    int num_tests = 5;
-    char buffer[80], test_paths[num_tests][MAXPATH];
-    int i, j, pipe;
-    pid_t pid;
-    FILE *in_out;
-    bool found;
-
-    /* Initialise as empty strings */
-    for ( i = 0; i < MAXPATH; i++ ) {
-        for ( j = 0; j < num_tests; j++ ) {
-            test_paths[j][i] = '\0';
-        }
-    }
-
-    strncpy(test_paths[0], "tests/img.jpg", MAXPATH);
-    strncpy(test_paths[1], "tests/img.png", MAXPATH);
-    strncpy(test_paths[2], "tests/img.gif", MAXPATH);
-    strncpy(test_paths[3], "tests/img.not_an_image_extension", MAXPATH);
-    strncpy(test_paths[4], "tests/not_an_image.jpg", MAXPATH);
-
-    for ( i = 0; i < num_tests; i++ ) {
-        pid = pipe_and_fork(&pipe, true);
-        if (pid == (pid_t) 0) {
-            /* Child */
-            dup2(pipe, STDOUT_FILENO);
-            dup2(pipe, STDERR_FILENO);
-            if (i < num_tests)
-                execl("./ccsrch", "ccsrch", test_paths[i], NULL);
-
-        } else if (pid > (pid_t) 0) {
-            /* Parent */
-            in_out = fdopen(pipe, "r");
-            found = false;
-            while (in_out != NULL && !feof(in_out)) {
-                fgets(buffer, 80, in_out);
-                if (strstr(buffer, "Binary types skipped ->\t\t1") != NULL) {
-                    found = true;
-                    break;
-                }
-            }
-            if ((i != num_tests - 1 && found) || (i == num_tests - 1 && !found))
-                fprintf(output, "%s", ".");
-            else
-                fprintf(output, "%s", "F");
-
-            wait(NULL);
-            close(pipe);
-        } else {
-            /* Fork failed */
-            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
-        }
-    }
-}
-
-/*
- * ===  FUNCTION  ==============================================================
- *         Name:  ignore_char_detection
- *
- *  Description:  Verifies that the modified ccsrch successfully detects and
- *                ignores the default ignore characters
- *                Tests, in order:
- *                    space
- *                    \n
- *                    \r
- *                    -
- *                    combination of above
- *
- *                There should be 3 credit card matches in the given file out of
- *                6 potential PANs
- *
- *      Version:  0.0.1
- *       Params:  FILE *output
- *      Returns:  void
- *        Usage:  ignore_char_detection( FILE *output )
- *      Outputs:  Ignore character detection test results
- * =============================================================================
- */
-void ignore_char_detection(FILE *output) {
-    int num_tests = 5;
-    char buffer[80], test_files[num_tests][MAXPATH];
-    int i, j, pipe;
-    pid_t pid;
-    FILE *in_out;
-    bool found;
-
-    /* Initialise as empty strings */
-    for ( i = 0; i < MAXPATH; i++ ) {
-        for ( j = 0; j < num_tests; j++ ) {
-            test_files[j][i] = '\0';
-        }
-    }
-
-    strncpy(test_files[0], "./tests/ignore_space.txt", MAXPATH);
-    strncpy(test_files[1], "./tests/ignore_unix_newline.txt", MAXPATH);
-    strncpy(test_files[2], "./tests/ignore_windows_newline.txt", MAXPATH);
-    strncpy(test_files[3], "./tests/ignore_dash.txt", MAXPATH);
-    strncpy(test_files[4], "./tests/ignore_combination.txt", MAXPATH);
-
-    for ( i = 0; i < num_tests; i++ ) {
-        pid = pipe_and_fork(&pipe, true);
-        if (pid == (pid_t) 0) {
-            /* Child */
-            dup2(pipe, STDOUT_FILENO);
-            dup2(pipe, STDERR_FILENO);
-            execl("./ccsrch", "ccsrch", test_files[i], NULL);
-
-        } else if (pid > (pid_t) 0) {
-            /* Parent */
-            in_out = fdopen(pipe, "r");
-            found = false;
-            while (in_out != NULL && !feof(in_out)) {
-                fgets(buffer, 80, in_out);
-                if (strstr(buffer, "Credit card matches ->\t\t3") != NULL) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found)
-                fprintf(output, "%s", ".");
-            else
-                fprintf(output, "%s", "F");
-
-            wait(NULL);
-            close(pipe);
-        } else {
-            /* Fork failed */
-            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
-        }
-    }
-}
-
-/*
- * ===  FUNCTION  ==============================================================
- *         Name:  compression_tests
- *
- *  Description:  Verifies that the modified ccsrch successfully detects, unpacks
- *                and parses compressed files.
- *                Tests, in order:
- *                    tar.gzip
- *                    mac os zip file
- *                    zip file
- *                    zip file containing zip files
- *
- *      Version:  0.0.1
- *       Params:  FILE *output
- *      Returns:  void
- *        Usage:  compression_tests( FILE *output )
- *      Outputs:  Compression test results
- * =============================================================================
- */
-void compression_tests(FILE *output) {
-    int num_tests = 4;
-    char buffer[80], test_files[num_tests][MAXPATH], expected_results[num_tests][MAXPATH];
-    int i, j, pipe;
-    pid_t pid;
-    FILE *in_out;
-    bool found;
-
-    /* Initialise as empty strings */
-    for ( i = 0; i < MAXPATH; i++ ) {
-        for ( j = 0; j < num_tests; j++ ) {
-            test_files[j][i] = '\0';
-            expected_results[j][i] = '\0';
-        }
-    }
-
-    strncpy(test_files[0], "./tests/tartest.tar.gz", MAXPATH);
-    strncpy(test_files[1], "./tests/test.mac.zip", MAXPATH);
-    strncpy(test_files[2], "./tests/test.zip", MAXPATH);
-    strncpy(test_files[3], "./tests/test2.zip", MAXPATH);
-
-	strncpy(expected_results[0], "Credit card matches ->\t\t9", MAXPATH);
-    strncpy(expected_results[1], "Credit card matches ->\t\t30", MAXPATH);
-    strncpy(expected_results[2], "Credit card matches ->\t\t30", MAXPATH);
-    strncpy(expected_results[3], "Credit card matches ->\t\t15", MAXPATH);
-
-    for ( i = 0; i < num_tests; i++ ) {
-        pid = pipe_and_fork(&pipe, true);
-        if (pid == (pid_t) 0) {
-            /* Child */
-            dup2(pipe, STDOUT_FILENO);
-            dup2(pipe, STDERR_FILENO);
-            execl("./ccsrch", "ccsrch", test_files[i], NULL);
-
-        } else if (pid > (pid_t) 0) {
-            /* Parent */
-            in_out = fdopen(pipe, "r");
-            found = false;
-            while (in_out != NULL && !feof(in_out)) {
-                fgets(buffer, 80, in_out);
-                if (strstr(buffer, expected_results[i]) != NULL) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found)
-                fprintf(output, "%s", ".");
-            else
-                fprintf(output, "%s", "F");
-
-            wait(NULL);
-            close(pipe);
-        } else {
-            /* Fork failed */
-            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
-        }
-    }
-}
-
-/*
- * ===  FUNCTION  ==============================================================
- *         Name:  pdf_tests
- *
- *  Description:  Verifies that the modified ccsrch successfully detects,
- *                unpacks and parses PDF Documents.
- *      Version:  0.0.1
- *       Params:  FILE *output
- *      Returns:  void
- *        Usage:  pdf_tests( FILE *output )
- *      Outputs:  PDF parsing test results
- * =============================================================================
- */
-void pdf_tests(FILE *output) {
-    int num_tests = 4;
-    char buffer[80], test_file[MAXPATH], expected_result[MAXPATH];
+void run_test(FILE *output, file_type type) {
+    int num_tests, loop_count;
+    char buffer[80], **test_files, **expected_results;
     int i, pipe;
     pid_t pid;
     FILE *in_out;
     bool found;
 
-    /* Initialise as empty strings */
-    for ( i = 0; i < MAXPATH; i++ ) {
-        test_file[i]= '\0';
-        expected_result[i] = '\0';
+    // Test counts
+    switch (type) {
+        case SELF_LOG:
+        case ZIP:
+            num_tests = 4;
+            break;
+        case IMAGE:
+        case SKIPCHARS:
+            num_tests = 5;
+            break;
+        case PDF:
+        case MS_EXCELX:
+        case MS_WORDX:
+            num_tests = 1;
+            break;
     }
 
-    strncpy(test_file, "tests/pdf.pdf", MAXPATH);
-    strncpy(expected_result, "Credit card matches ->\t\t15", MAXPATH);
-   
-    pid = pipe_and_fork(&pipe, true);
-    if (pid == (pid_t) 0) {
-        /* Child */
-        dup2(pipe, STDOUT_FILENO);
-        dup2(pipe, STDERR_FILENO);
-        execl("./ccsrch", "ccsrch", test_file, NULL);
+    // Initialise as empty strings. 2D memset
+    test_files = malloc(sizeof(char*) * num_tests);
+    expected_results = malloc(sizeof(char*) * num_tests);
+    for ( i = 0; i < num_tests; i++ ) {
+        test_files[i] = malloc(MAXPATH);
+        expected_results[i] = malloc(MAXPATH);
+        memset(test_files[i], '\0', MAXPATH);
+        memset(expected_results[i], '\0', MAXPATH);
+    }
 
-    } else if (pid > (pid_t) 0) {
-        /* Parent */
-        in_out = fdopen(pipe, "r");
-        found = false;
-        while (in_out != NULL && !feof(in_out)) {
-            fgets(buffer, 80, in_out);
-            if (strstr(buffer, expected_result) != NULL) {
-                found = true;
-                break;
+    // Files and expected outputs
+    switch (type) {
+        case SELF_LOG:
+            strncpy(test_files[0], "./tests/log.log", MAXPATH); /* Absolute path (as best we can) */
+            strncpy(test_files[1], "tests/../tests/log.log", MAXPATH); /* Weird path */
+            strncpy(test_files[2], "tests/log.log", MAXPATH); /* Relative path */
+            strncpy(test_files[3], "tests/log_symlink", MAXPATH); /* Symlink test */
+            for ( i = 0; i < num_tests; i++ )
+                strncpy(expected_results[i], "Skipping log file: ", MAXPATH);
+            break;
+        case IMAGE:
+            strncpy(test_files[0], "tests/img.jpg", MAXPATH);
+            strncpy(test_files[1], "tests/img.png", MAXPATH);
+            strncpy(test_files[2], "tests/img.gif", MAXPATH);
+            strncpy(test_files[3], "tests/img.not_an_image_extension", MAXPATH);
+            strncpy(test_files[4], "tests/not_an_image.jpg", MAXPATH);
+            for ( i = 0; i < num_tests - 1; i++ )
+                strncpy(expected_results[i], "Binary types skipped ->\t\t1",
+                        MAXPATH);
+            strncpy(expected_results[4], "Binary types skipped ->\t\t0",
+                    MAXPATH);
+            break;
+        case SKIPCHARS:
+            strncpy(test_files[0], "tests/ignore_space.txt", MAXPATH);
+            strncpy(test_files[1], "tests/ignore_unix_newline.txt", MAXPATH);
+            strncpy(test_files[2], "tests/ignore_windows_newline.txt", MAXPATH);
+            strncpy(test_files[3], "tests/ignore_dash.txt", MAXPATH);
+            strncpy(test_files[4], "tests/ignore_combination.txt", MAXPATH);
+            for ( i = 0; i < num_tests; i++ )
+                strncpy(expected_results[i], "Credit card matches ->\t\t3",
+                        MAXPATH);
+            break;
+        case ZIP:
+            strncpy(test_files[0], "tests/tartest.tar.gz", MAXPATH);
+            strncpy(test_files[1], "tests/test.mac.zip", MAXPATH);
+            strncpy(test_files[2], "tests/test.zip", MAXPATH);
+            strncpy(test_files[3], "tests/test2.zip", MAXPATH);
+            strncpy(expected_results[0], "Credit card matches ->\t\t9", MAXPATH);
+            strncpy(expected_results[1], "Credit card matches ->\t\t30", MAXPATH);
+            strncpy(expected_results[2], "Credit card matches ->\t\t30", MAXPATH);
+            strncpy(expected_results[3], "Credit card matches ->\t\t15", MAXPATH);
+            break;
+        case PDF:
+            strncpy(test_files[0], "tests/pdf.pdf", MAXPATH);
+            strncpy(expected_results[0], "Credit card matches ->\t\t15", MAXPATH);
+            break;
+        case MS_EXCELX:
+            strncpy(test_files[0], "tests/xlsx.xlsx", MAXPATH);
+            strncpy(expected_results[0], "Credit card matches ->\t\t3", MAXPATH);
+            break;
+        case MS_WORDX:
+            strncpy(test_files[0], "tests/docx.docx", MAXPATH);
+            strncpy(expected_results[0], "Credit card matches ->\t\t3", MAXPATH);
+    }
+
+    // Loop counts
+    switch (type) {
+        case SELF_LOG:
+            loop_count = num_tests + 1;
+            break;
+        default:
+            loop_count = num_tests;
+    }
+
+    for ( i = 0; i < loop_count; i++ ) {
+        pid = pipe_and_fork(&pipe, true);
+        if (pid == (pid_t) 0) {
+            /* Child */
+            dup2(pipe, STDOUT_FILENO);
+            dup2(pipe, STDERR_FILENO);
+
+            // Particulars of the invocation of ccsrch
+            switch (type) {
+                case SELF_LOG:
+                    if (i < num_tests)
+                        execl("./ccsrch", "ccsrch", "-o", test_files[i], "tests",
+                                NULL);
+                    else
+                        execl("./ccsrch", "ccsrch", "tests", NULL);
+                    break;
+                default:
+                    execl("./ccsrch", "ccsrch", test_files[i], NULL);
             }
-        }
-        if (found)
-            fprintf(output, "%s", ".");
-        else
-            fprintf(output, "%s", "F");
 
-        wait(NULL);
-        close(pipe);
-    } else {
-        /* Fork failed */
-        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
-    }
-}
+        } else if (pid > (pid_t) 0) {
+            /* Parent */
+            in_out = fdopen(pipe, "r");
+            found = false;
+            while (!found && in_out != NULL && !feof(in_out)) {
+                fgets(buffer, 80, in_out);
 
-/*
- * ===  FUNCTION  ==============================================================
- *         Name:  xlsx_tests
- *
- *  Description:  Verifies that the modified ccsrch successfully detects,
- *                unpacks and parses xlsx documents.
- *      Version:  0.0.1
- *       Params:  FILE *output
- *      Returns:  void
- *        Usage:  xlsx_tests( FILE *output )
- *      Outputs:  .xlsx parsing test results
- * =============================================================================
- */
-void xlsx_tests(FILE *output) {
-    int num_tests = 4;
-    char buffer[80], test_file[MAXPATH], expected_result[MAXPATH];
-    int i, pipe;
-    pid_t pid;
-    FILE *in_out;
-    bool found;
-
-    /* Initialise as empty strings */
-    for ( i = 0; i < MAXPATH; i++ ) {
-        test_file[i]= '\0';
-        expected_result[i] = '\0';
-    }
-
-    strncpy(test_file, "tests/xlsx.xlsx", MAXPATH);
-    strncpy(expected_result, "Credit card matches ->\t\t3", MAXPATH);
-   
-    pid = pipe_and_fork(&pipe, true);
-    if (pid == (pid_t) 0) {
-        /* Child */
-        dup2(pipe, STDOUT_FILENO);
-        dup2(pipe, STDERR_FILENO);
-        execl("./ccsrch", "ccsrch", test_file, NULL);
-
-    } else if (pid > (pid_t) 0) {
-        /* Parent */
-        in_out = fdopen(pipe, "r");
-        found = false;
-        while (in_out != NULL && !feof(in_out)) {
-            fgets(buffer, 80, in_out);
-            if (strstr(buffer, expected_result) != NULL) {
-                found = true;
-                break;
+                // Result checking
+                switch (type) {
+                    case SELF_LOG:
+                        if (strstr(buffer, expected_results[0]) != NULL)
+                            found = true;
+                        break;
+                    default:
+                        if (strstr(buffer, expected_results[i]) != NULL)
+                            found = true;
+                }
             }
-        }
-        if (found)
-            fprintf(output, "%s", ".");
-        else
-            fprintf(output, "%s", "F");
 
-        wait(NULL);
-        close(pipe);
-    } else {
-        /* Fork failed */
-        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
-    }
-}
-
-/*
- * ===  FUNCTION  ==============================================================
- *         Name:  docx_tests
- *
- *  Description:  Verifies that the modified ccsrch successfully detects,
- *                unpacks and parses docx documents.
- *      Version:  0.0.1
- *       Params:  FILE *output
- *      Returns:  void
- *        Usage:  docx_tests( FILE *output )
- *      Outputs:  .docx parsing test results
- * =============================================================================
- */
-void docx_tests(FILE *output) {
-    int num_tests = 4;
-    char buffer[80], test_file[MAXPATH], expected_result[MAXPATH];
-    int i, pipe;
-    pid_t pid;
-    FILE *in_out;
-    bool found;
-
-    /* Initialise as empty strings */
-    for ( i = 0; i < MAXPATH; i++ ) {
-        test_file[i]= '\0';
-        expected_result[i] = '\0';
-    }
-
-    strncpy(test_file, "tests/docx.docx", MAXPATH);
-    strncpy(expected_result, "Credit card matches ->\t\t3", MAXPATH);
-   
-    pid = pipe_and_fork(&pipe, true);
-    if (pid == (pid_t) 0) {
-        /* Child */
-        dup2(pipe, STDOUT_FILENO);
-        dup2(pipe, STDERR_FILENO);
-        execl("./ccsrch", "ccsrch", test_file, NULL);
-
-    } else if (pid > (pid_t) 0) {
-        /* Parent */
-        in_out = fdopen(pipe, "r");
-        found = false;
-        while (in_out != NULL && !feof(in_out)) {
-            fgets(buffer, 80, in_out);
-            if (strstr(buffer, expected_result) != NULL) {
-                found = true;
-                break;
+            // Result printing
+            switch (type) {
+                case SELF_LOG:
+                    if ((i < num_tests && found) || (i == num_tests && !found))
+                        fprintf(output, "%s", ".");
+                    else
+                        fprintf(output, "%s", "F");
+                    break;
+                default:
+                    if (found)
+                        fprintf(output, "%s", ".");
+                    else
+                        fprintf(output, "%s", "F");
             }
-        }
-        if (found)
-            fprintf(output, "%s", ".");
-        else
-            fprintf(output, "%s", "F");
+            fflush(output);
 
-        wait(NULL);
-        close(pipe);
-    } else {
-        /* Fork failed */
-        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+            wait(NULL);
+            close(pipe);
+        } else {
+            /* Fork failed */
+            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+        }
     }
+
+    // Clean up
+    for ( i = 0; i < num_tests; i++ ) {
+        free(test_files[i]);
+        free(expected_results[i]);
+    }
+    free(test_files);
+    free(expected_results);
 }

@@ -81,6 +81,7 @@ typedef enum FILE_TYPES {
     ODS,
     OTS,
     SELF_LOG,
+    SKIPCHARS,
     UNKNOWN
 } file_type;
 

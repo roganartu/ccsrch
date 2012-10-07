@@ -42,18 +42,6 @@ void sanity_checks(FILE *output);
 
 void initialize_card_arrs();
 
-void log_file_detection(FILE *output);
-
-void image_file_detection(FILE *output);
-
-void ignore_char_detection(FILE *output);
-
-void compression_tests(FILE *output);
-
-void pdf_tests(FILE *output);
-
-void xlsx_tests(FILE *output);
-
-void docx_tests(FILE *output);
+void run_test(FILE *output, file_type type);
 
 #endif
