@@ -1011,6 +1011,39 @@ int parse_docx(char *filename) {
     return 0;
 }
 
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  buf_strstr
+ *
+ *  Description:  Designed to search the given ccsrch_buf for the given needle,
+ *                starting at the given index and finishing at index +
+ *                strlen(needle)
+ * 
+ *      Version:  0.0.1
+ *       Params:  char *buf
+ *                int index
+ *                int cnt
+ *                char *needle
+ *      Returns:  bool result
+ *                    true if match
+ *                    false otherwise
+ *        Usage:  buf_strstr( char *buf, int index, int cnt, char *needle )
+ *      Outputs:  N/A
+
+ *        Notes:  int cnt is the length of the buffer. This is to avoid
+ *                potential segfaults
+ * =============================================================================
+ */
+bool buf_strstr(char *buf, int index, int cnt, char *needle) {
+    int i;
+
+    for ( i = index; i < index + strlen(needle); i++ ) {
+        if (i >= cnt || buf[i] != needle[i - index])
+            return false;
+    }
+    return true;
+}
+
 /*
  * From http://stackoverflow.com/a/1643946/943833
  * In response to

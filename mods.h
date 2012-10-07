@@ -112,4 +112,6 @@ int parse_xlsx(char *filename);
 
 int parse_docx(char *filename);
 
+bool buf_strstr(char *buf, int index, int cnt, char *needle);
+
 #endif

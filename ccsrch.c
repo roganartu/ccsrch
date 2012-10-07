@@ -408,11 +408,8 @@ ccsrch(char *filename)
         if (inside_xml_tag) {
           // Check for new lines in word. This could miss some if they span over
           // the end of ccsrch_buf. Likelihood low though
-          if (processing_docx && ccsrch_buf[ccsrch_index] == '/' &&
-              ccsrch_index + 1 < cnt && ccsrch_buf[ccsrch_index + 1] == 'w' &&
-              ccsrch_index + 2 < cnt && ccsrch_buf[ccsrch_index + 2] == ':' &&
-              ccsrch_index + 3 < cnt && ccsrch_buf[ccsrch_index + 3] == 'r' &&
-              ccsrch_index + 4 < cnt && ccsrch_buf[ccsrch_index + 4] == '>')
+          if (processing_docx && buf_strstr(ccsrch_buf, ccsrch_index, cnt,
+                      "/w:r>"))
           {
             lineno++;
             charpos = 1;
