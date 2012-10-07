@@ -160,6 +160,12 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.0.10 (Oct. 7, 2012):
+
+* Added more possible mime types for Word and Excel files
+* Added basic .xls Excel file parsing
+* Added pdftotext docs to comply with license
+
 1.0.9 (Oct. 7, 2012):
 
 * Fixed pdf parsing on OSX

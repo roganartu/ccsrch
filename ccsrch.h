@@ -41,7 +41,7 @@
   #define SIGQUIT 3
 #endif
 
-#define PROG_VER "ccsrch 1.0.9 (c) 2012 COMS3000 Assignment 2 Group Semester 2"
+#define PROG_VER "ccsrch 1.0.10 (c) 2012 COMS3000 Assignment 2 Group Semester 2"
 
 #define MDBUFSIZE 512
 #define MAXPATH 2048
