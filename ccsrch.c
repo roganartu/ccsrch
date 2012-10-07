@@ -702,7 +702,7 @@ check_jcb_16(long offset)
   char            num2buf[5];
   int             vnum = 0;
 
-  memset(&num2buf, '\0', 2);
+  memset(&num2buf, '\0', 5);
   snprintf(num2buf, 5, "%d%d%d%d", cardbuf[0], cardbuf[1], cardbuf[2], cardbuf[3]);
   vnum = atoi(num2buf);
   if ((vnum == 3088) || (vnum == 3096) || (vnum == 3112) || (vnum == 3158) || (vnum == 3337) || (vnum == 3528) || (vnum == 3529))
