@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <ctype.h>
 #include "mods.h"
 
 #ifndef SIGHUP

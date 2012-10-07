@@ -304,6 +304,7 @@ ccsrch(char *filename)
   int    check = 0;
   long   lineno = 1;
   long   charpos = 1;
+  file_type       filetype;
 
   memset(&lastfilename,'\0',MAXPATH);
   ccsrch_index=0;
@@ -325,7 +326,8 @@ ccsrch(char *filename)
   // file type handling to set it up every time they need to
   reset_skip_chars();
 
-  switch (detect_file_type(filename)) {
+  filetype = detect_file_type(filename);
+  switch (filetype) {
     case ASCII:
     case UNKNOWN:
     case XML:
@@ -405,6 +407,19 @@ ccsrch(char *filename)
           lineno++;
           charpos = 0;
         }
+      } else if (filetype == MS_EXCEL && ccsrch_index + 1 < cnt &&
+              ccsrch_buf[ccsrch_index + 1] == 0 && ccsrch_index + 2 < cnt &&
+              ccsrch_buf[ccsrch_index + 2] == 0)
+      {
+        // Excel cell separation seems to be some character followed by 2 nulls
+        // Hard to handle. See: http://www.joelonsoftware.com/items/2008/02/19.html
+        check = 0;
+        lineno++;
+      } else if ((filetype == MS_EXCEL) &&
+              !isprint(ccsrch_buf[ccsrch_index]))
+      {
+        // Ignore anything in excel files that cannot be printed
+        check = 0;
       } else
       {
         check = 0;
