@@ -160,6 +160,11 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.0.9 (Oct. 7, 2012):
+
+* Fixed pdf parsing on OSX
+* Fixed potential segfault in print_result
+
 1.0.8 (Oct. 7, 2012):
 
 * Added line numbers to results
