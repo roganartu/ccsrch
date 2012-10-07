@@ -413,7 +413,7 @@ int unzip_and_parse(char *filename) {
         	exit_code = WEXITSTATUS(statval);
         
         if (exit_code != 0){
-            printf("failed to extract file %s\n", filename);
+            fprintf(stderr, "failed to extract file %s\n", filename);
         } 
         close(pipe);
     } else {
@@ -493,7 +493,7 @@ int gunzip_and_parse(char *filename) {
         	exit_code = WEXITSTATUS(statval);
         
         if (exit_code != 0){
-            printf("failed to extract file %s\n", filename);
+            fprintf(stderr, "failed to extract file %s\n", filename);
         } 
         close(pipe);
     } else {
@@ -581,7 +581,7 @@ int untar_and_parse(char *filename) {
         	exit_code = WEXITSTATUS(statval);
         
         if (exit_code != 0){
-            printf("failed to extract file %s\n", filename);
+            fprintf(stderr, "failed to extract file %s\n", filename);
         } 
         close(pipe);
     } else {
