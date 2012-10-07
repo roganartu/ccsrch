@@ -734,6 +734,7 @@ int convert_and_parse_pdf(char *filename) {
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
         /* Child */
+        devnull = open("/dev/null", O_WRONLY);
         dup2(devnull, STDOUT_FILENO);
         dup2(devnull, STDERR_FILENO);
 #ifdef __APPLE__
