@@ -88,15 +88,19 @@ print_result(char *cardname, int cardlen, long byte_offset)
   // Show the filename of the archive if this file was extracted from somewhere
   if (extracted_parent[0] != 0) {
     strncpy(print_filename, extracted_parent, MAXPATH);
-    strncat(print_filename, " -> ", 5);
 
-    if (index(currfilename, '/') == NULL) {
-    	strncat(print_filename, currfilename,
-            MAXPATH - strlen(extracted_parent));
-    } else {
-    	strncat(print_filename, index(currfilename, '/'),
-            MAXPATH - strlen(extracted_parent));
-	}
+    // Don't display the extracted file name with PDFs
+    if (detect_file_type(extracted_parent) != PDF) {
+      strncat(print_filename, " -> ", 5);
+
+      if (index(currfilename, '/') == NULL) {
+          strncat(print_filename, currfilename,
+              MAXPATH - strlen(extracted_parent));
+      } else {
+          strncat(print_filename, index(currfilename, '/'),
+              MAXPATH - strlen(extracted_parent));
+      }
+    }
   } else
       strncpy(print_filename, currfilename, MAXPATH);
   // Add in line numbers
