@@ -89,8 +89,14 @@ print_result(char *cardname, int cardlen, long byte_offset)
   if (extracted_parent[0] != 0) {
     strncpy(print_filename, extracted_parent, MAXPATH);
     strncat(print_filename, " -> ", 5);
-    strncat(print_filename, index(currfilename, '/'),
+
+    if (index(currfilename, '/') == NULL) {
+    	strncat(print_filename, currfilename,
             MAXPATH - strlen(extracted_parent));
+    } else {
+    	strncat(print_filename, index(currfilename, '/'),
+            MAXPATH - strlen(extracted_parent));
+    }
   } else
       strncpy(print_filename, currfilename, MAXPATH);
   // Add in line numbers

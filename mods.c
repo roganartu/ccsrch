@@ -731,7 +731,11 @@ int convert_and_parse_pdf(char *filename) {
         /* Child */
         dup2(devnull, STDOUT_FILENO);
         dup2(devnull, STDERR_FILENO);
+#ifdef __APPLE__
+        execlp("bin/pdftotext", "bin/pdftotext", filename, template, NULL);
+#else
         execlp("pdftotext", "pdftotext", filename, template, NULL);
+#endif
     } else if (pid > (pid_t) 0) {
         /* Parent */
         wait(NULL);
