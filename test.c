@@ -60,6 +60,11 @@ int main(int argc, char *argv[]) {
     run_test(output, IMAGE);
     fprintf(output, "%s", "\n\n");
 
+    /* Binary file detection */
+    fprintf(output, "%s\n", "==== Binary File Tests ======================");
+    run_test(output, BINARY);
+    fprintf(output, "%s", "\n\n");
+
     /* Image file detection */
     fprintf(output, "%s\n", "==== Default Separator Tests ================");
     run_test(output, SKIPCHARS);
@@ -428,6 +433,15 @@ void sanity_checks(FILE *output) {
  *                        odt.odt
  *                        ott.ott
  *
+ *                BINARY TESTS - FormatL BINARY
+ *                    Verifies that AUDIO, VIDEO, EXECUTABLE and BINARY types
+ *                    are skipped appropriately.
+ *                    Tests, in order:
+ *                        ogv.ogv
+ *                        mp3.mp3
+ *                        ccsrch.o
+ *                        ccsrch
+ *
  *      Version:  0.0.1
  *       Params:  FILE *output
  *                file_type type
@@ -448,6 +462,7 @@ void run_test(FILE *output, file_type type) {
     switch (type) {
         case SELF_LOG:
         case ZIP:
+        case BINARY:
             num_tests = 4;
             break;
         case IMAGE:
@@ -496,6 +511,15 @@ void run_test(FILE *output, file_type type) {
                         MAXPATH);
             strncpy(expected_results[4], "Binary types skipped ->\t\t0",
                     MAXPATH);
+            break;
+        case BINARY:
+            strncpy(test_files[0], "tests/ogv.ogv", MAXPATH);
+            strncpy(test_files[1], "tests/mp3.mp3", MAXPATH);
+            strncpy(test_files[2], "tests/ccsrch.o", MAXPATH);
+            strncpy(test_files[3], "tests/ccsrch", MAXPATH);
+            for ( i = 0; i < num_tests - 1; i++ )
+                strncpy(expected_results[i], "Binary types skipped ->\t\t1",
+                        MAXPATH);
             break;
         case SKIPCHARS:
             strncpy(test_files[0], "tests/ignore_space.txt", MAXPATH);
