@@ -93,7 +93,8 @@ print_result(char *cardname, int cardlen, long byte_offset)
     // Don't display the extracted file name with PDF, Excel, Word or ODS/OTS
     parent_type = detect_file_type(extracted_parent);
     if (parent_type != PDF && parent_type != MS_EXCELX &&
-        parent_type != MS_WORDX && parent_type != ODS && parent_type != OTS) {
+        parent_type != MS_WORDX && parent_type != ODS && parent_type != OTS &&
+        parent_type != ODT && parent_type != OTT) {
       strncat(print_filename, " -> ", 5);
 
       if (index(currfilename, '/') == NULL) {
@@ -314,7 +315,9 @@ ccsrch(char *filename)
   long   lineno = 1;
   long   charpos = 1;
   int    inside_xml_tag = 0;
+  int    ods_in_table = 0;
   file_type       filetype;
+  file_type       parent_type;
 
   memset(&lastfilename,'\0',MAXPATH);
   ccsrch_index=0;
@@ -373,7 +376,7 @@ ccsrch(char *filename)
     case ODT:
     case OTT:
       // OpenDocument Text document - normal and template. Same for both
-      break;
+      // Parse same as ODS and OTS
     case ODS:
     case OTS:
       // OpenDocument Spreadsheet document - normal and template. Same for both
@@ -386,6 +389,10 @@ ccsrch(char *filename)
   file_count++;
 
   initialize_buffer();
+
+  // Get parent type if we're handling like docx
+  if (processing_docx)
+    parent_type = detect_file_type(extracted_parent);
 
   while (1)
   {
@@ -405,12 +412,30 @@ ccsrch(char *filename)
          * closing tags. We don't want to consider anything within tags.
          */
         check = 0; // Default
+
         if (inside_xml_tag) {
+          // If ODT or OTT and in a table, increment lines same as ODS. Otherwise
+          // increment lines every "/text:p>"
+          if (parent_type == ODT || parent_type == OTT)
+            {
+              if (buf_strstr(ccsrch_buf, ccsrch_index, cnt, "/table:table>"))
+                ods_in_table = 0;
+              else if (buf_strstr(ccsrch_buf, ccsrch_index, cnt, "table:table "))
+                ods_in_table = 1;
+            }
+
           // Check for new lines in word. This could miss some if they span over
           // the end of ccsrch_buf. Likelihood low though
           if (processing_docx && (buf_strstr(ccsrch_buf, ccsrch_index, cnt,
-                      "/w:r>") || buf_strstr(ccsrch_buf, ccsrch_index, cnt,
-                      "/table:table-row>")))
+              "/w:r>") || ((parent_type == ODS || parent_type == OTS ||
+              ((parent_type == ODT || parent_type == OTT) && ods_in_table)) &&
+              buf_strstr(ccsrch_buf, ccsrch_index, cnt, "/table:table-row>"))))
+          {
+            lineno++;
+            charpos = 1;
+          } else if (((parent_type == ODT || parent_type == OTT) &&
+              !ods_in_table) &&
+              buf_strstr(ccsrch_buf, ccsrch_index, cnt, "/text:p>"))
           {
             lineno++;
             charpos = 1;
