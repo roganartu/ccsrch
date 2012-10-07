@@ -4,7 +4,7 @@ CCSRCH is a cross-platform tool for searching filesystems for credit card inform
 
 ### Copyright
 
-Copyright (c) 2012 UQ COMS3000 Assignment 2 Group (CCFinders) <uni@roganartu.com>  
+Copyright (c) 2012 UQ COMS3000 Assignment 2 Group (CCFinders) <uni@roganartu.com>
 Copyright (c) 2007 Mike Beekey <zaphod2718@yahoo.com>
 
 This application is licensed under the GNU General Public License (see below & COPYING).

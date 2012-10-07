@@ -68,23 +68,22 @@ int main(int argc, char *argv[]) {
     ignore_char_detection(output);
 
     fprintf(output, "%s", "\n\n");
-    
+
     /* Compressed files */
     fprintf(output, "%s\n", "==== Compressed files =======================");
     compression_tests(output);
-    
-    
-    fprintf(output, "%s", "\n\n");
+
+    return 0;
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  initialize_card_arrs
  *
  *  Description:  Initialise local global variables with dummy card values
  *                for each card type for memcpying into cardbuf for sanity
  *                checking.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  N/A
  *      Returns:  void
@@ -243,13 +242,13 @@ void initialize_card_arrs() {
 
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  sanity_checks
  *
  *  Description:  Check to ensure that all methods are functioning as expected
  *                and detect all the different card formats
- * 
+ *
  *      Version:  0.0.1
  *       Params:  N/A
  *      Returns:  void
@@ -331,7 +330,7 @@ void sanity_checks(FILE *output) {
     fprintf(output, "%s", "\n");
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  log_file_detection
  *
@@ -343,10 +342,10 @@ void sanity_checks(FILE *output) {
  *                    tests/../tests/log.log
  *                    tests/log.log
  *                    log.log
- *                
+ *
  *                Tests absolute paths, relative with redundancy, relative,
  *                symlinks and no log file output
- * 
+ *
  *      Version:  0.0.1
  *       Params:  FILE *output
  *      Returns:  void
@@ -410,7 +409,7 @@ void log_file_detection(FILE *output) {
     }
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  image_file_detection
  *
@@ -420,7 +419,7 @@ void log_file_detection(FILE *output) {
  *                               tests/img.gif
  *                               tests/img.not_an_image_extension
  *                               tests/not_an_image.jpg
- *                
+ *
  *      Version:  0.0.1
  *       Params:  FILE *output
  *      Returns:  void
@@ -483,7 +482,7 @@ void image_file_detection(FILE *output) {
     }
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  ignore_char_detection
  *
@@ -495,10 +494,10 @@ void image_file_detection(FILE *output) {
  *                    \r
  *                    -
  *                    combination of above
- *                
+ *
  *                There should be 3 credit card matches in the given file out of
  *                6 potential PANs
- *                
+ *
  *      Version:  0.0.1
  *       Params:  FILE *output
  *      Returns:  void

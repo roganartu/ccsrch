@@ -21,12 +21,12 @@
  * the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -40,7 +40,7 @@ struct stat log_file_stat = (struct stat) {0};
 
 /* Method definitions */
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  initialise_mods
  *
@@ -48,7 +48,7 @@ struct stat log_file_stat = (struct stat) {0};
  *                This method is called immediately after argument count
  *                checking.
  *                This method is expected to set errno to some value on error
- * 
+ *
  *      Version:  0.0.1
  *       Params:  N/A
  *      Returns:  bool true if success
@@ -81,7 +81,7 @@ bool initialise_mods() {
 }
 
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  pipe_and_fork
  *
@@ -89,7 +89,7 @@ bool initialise_mods() {
  *                of the parent and the input side of the child. Changes fd
  *                to be the input/output side of the pipe depending on whether
  *                child or parent
- * 
+ *
  *      Version:  0.0.1
  *       Params:  int *fd - Pointer to file descriptor to set
  *                bool reverse - Declares which direction the pipe should be
@@ -136,7 +136,7 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
 }
 
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  detect_file_type
  *
@@ -144,7 +144,7 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
  *                skip it and false otherwise.
  *                Forks and calls file from command line. Parses result to
  *                determine file type.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  char *filename
  *      Returns:  bool true if type to skip
@@ -152,7 +152,7 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
  *        Usage:  detect_file_type( char *filename )
  *      Outputs:  N/A
  *
- *        Notes:  
+ *        Notes:
  *                Open Office mime types from:
  *                  http://www.openoffice.org/framework/documentation/mimetypes/mimetypes.html
  *                Image mime types from:
@@ -165,7 +165,7 @@ file_type detect_file_type(char *filename) {
     pid_t pid;
     file_type type;
     FILE *in_out;
-    
+
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {
         /* Child */
@@ -268,7 +268,7 @@ file_type detect_file_type(char *filename) {
     return UNKNOWN;
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  reset_skip_chars
  *
@@ -286,14 +286,14 @@ file_type detect_file_type(char *filename) {
  *                When you add characters to the array, remember to modify the
  *                skipchars_count integer, so looping over the array is
  *                simplified.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  void
  *      Returns:  void
  *        Usage:  reset_skip_chars()
  *      Outputs:  N/A
 
- *        Notes:  
+ *        Notes:
  * =============================================================================
  */
 void reset_skip_chars(void) {
@@ -317,14 +317,14 @@ void reset_skip_chars(void) {
     skipchars[3] = '-';  // As per specification
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  in_skipped_arr
  *
  *  Description:  Checks if the supplied character is within the skipchars
  *                array. Relies on skipchars_count reliably representing the
  *                length of the arrays.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  char check
  *      Returns:  bool
@@ -333,7 +333,7 @@ void reset_skip_chars(void) {
  *        Usage:  in_skipped_arr( char check )
  *      Outputs:  N/A
 
- *        Notes:  
+ *        Notes:
  * =============================================================================
  */
 bool in_skipped_arr(char check) {
@@ -349,13 +349,13 @@ bool in_skipped_arr(char check) {
     return false;
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  unzip_and_parse
  *
  *  Description:  Extract files from zip archive, parse the contents and return
  *                the number of PANs found within.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  char *filename
  *      Returns:  int
@@ -610,23 +610,22 @@ int untar_and_parse(char *filename) {
         extracted_parent[0] = 0;
 
     return 0;
-
 }
 
-/* 
+/*
  * ===  FUNCTION  ==============================================================
  *         Name:  remove_directory
  *
  *  Description:  Traverses a directory, recursively removing all files before
  *                finally removing the empty directory.
- * 
+ *
  *      Version:  0.0.1
  *       Params:  char *dir
  *      Returns:  void
  *        Usage:  remove_directory( char *dir )
  *      Outputs:  N/A
  *
- *        Notes:  
+ *        Notes:
  * =============================================================================
  */
 void remove_directory(char *dir) {
@@ -650,7 +649,7 @@ void remove_directory(char *dir) {
     dirptr = opendir(dir);
     while ((d = readdir(dirptr)) != NULL) {
 
-        /* readdir give us everything and not necessarily in order. This 
+        /* readdir give us everything and not necessarily in order. This
         logic is just silly, but it works */
         if (((d->d_name[0] == '.') &&
                 (d->d_name[1] == '\0')) ||
@@ -662,7 +661,7 @@ void remove_directory(char *dir) {
         // Get each entry
         strncat(curr_path, d->d_name, MAXPATH);
         err = get_file_stat(curr_path, &fstat);
-        
+
         if (err == -1) {
             if (errno == ENOENT)
                 fprintf(stderr, "proc_dir_list: file %s not found, can't stat\n", curr_path);
