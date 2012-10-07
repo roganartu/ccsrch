@@ -803,6 +803,110 @@ int convert_and_parse_pdf(char *filename) {
 }
 
 /*
+ * ===  FUNCTION  ==============================================================
+ *         Name:  parse_xlsx
+ *
+ *  Description:  .xlsx files behave extremely similar to zip archives. They can
+ *                be extracted and then the files within them parsed
+ *                individually.
+ *
+ *      Version:  0.0.1
+ *       Params:  char *filename
+ *      Returns:  int
+ *                    0 on success
+ *                    exit(errno) otherwise
+ *        Usage:  parse_xlsx( char *filename )
+ *      Outputs:  N/A
+
+ *        Notes:  Due to where this method is always called from, there is no
+ *                argument checking. Filename is assumed to be non-null
+ * =============================================================================
+ */
+int parse_xlsx(char *filename) {
+    char parent[MAXPATH], *temp_folder, *search_file;
+    pid_t pid;
+    int pipe, devnull, total, statval, exit_code;
+    char template[] = "ccsrch-tmp_folder-XXXXXX";
+
+    if (mkdtemp(template) == NULL) {
+#ifdef DEBUG
+        fprintf(stderr, "parse_xlsx: unable to create tmp folder\n");
+#endif
+        return 0;
+    }
+
+    temp_folder = malloc(26);
+    memset(temp_folder, '\0', 26);
+    strcat(temp_folder, template);
+    strcat(temp_folder, "/");
+    search_file = malloc(strlen(temp_folder) + 21);
+    memset(search_file, '\0', 26);
+    strncpy(search_file, temp_folder, strlen(temp_folder));
+    strcat(search_file, "xl/sharedStrings.xml");
+
+    // Extracted file attribution. Need to remember parent if necessary
+    parent[0] = 0;
+    if (extracted_parent[0] != 0) {
+        strncpy(parent, extracted_parent, MAXPATH);
+        if (index(filename, '/') != NULL) {
+            strncat(extracted_parent, " -> ", 5);
+            strncat(extracted_parent, index(filename, '/'),
+                    MAXPATH - strlen(extracted_parent));
+        }
+    } else
+        strncpy(extracted_parent, filename, strlen(filename) + 1);
+
+    pid = pipe_and_fork(&pipe, true);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        devnull = open("/dev/null", O_WRONLY);
+        dup2(devnull, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        execlp("unzip", "unzip", "-o", "-d", temp_folder, filename, NULL);
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        exit_code = 0;
+
+        wait(&statval);
+        if(WIFEXITED(statval))
+            exit_code = WEXITSTATUS(statval);
+
+        close(pipe);
+
+        if (exit_code != 0){
+#ifdef DEBUG
+            fprintf(stderr, "parse_xlsx: failed to extract file %s | exit_code=%d\n",
+                    filename, exit_code);
+#endif
+            return 0;
+        }
+    } else {
+        /* Fork failed */
+#ifdef DEBUG
+        fprintf(stderr, "\n%s\n", "parse_xlsx: failed to pipe and fork\n");
+#endif
+        return 0;
+    }
+
+    // Now that we've got our xlsx extracted, let's have a look at the content
+    processing_xlsx = 1;
+    ccsrch(search_file);
+    processing_xlsx = 0;
+
+    // Cleanup
+    remove_directory(temp_folder);
+    free(temp_folder);
+    free(search_file);
+
+    if (parent[0] != 0)
+        strncpy(extracted_parent, parent, MAXPATH);
+    else
+        extracted_parent[0] = 0;
+
+    return 0;
+}
+
+/*
  * From http://stackoverflow.com/a/1643946/943833
  * In response to
  * http://stackoverflow.com/questions/1634359/is-there-a-reverse-fn-for-strstr

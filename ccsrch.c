@@ -76,6 +76,7 @@ print_result(char *cardname, int cardlen, long byte_offset)
   char		  trackbuf[MDBUFSIZE];
   char            print_filename[MAXPATH];
   char            cardpos[MAXPATH];
+  file_type       parent_type;
 
   memset(&nbuf, '\0', 20);
 
@@ -89,8 +90,9 @@ print_result(char *cardname, int cardlen, long byte_offset)
   if (extracted_parent[0] != 0) {
     strncpy(print_filename, extracted_parent, MAXPATH);
 
-    // Don't display the extracted file name with PDFs
-    if (detect_file_type(extracted_parent) != PDF) {
+    // Don't display the extracted file name with PDFs or Excels
+    parent_type = detect_file_type(extracted_parent);
+    if (parent_type != PDF && parent_type != MS_EXCELX) {
       strncat(print_filename, " -> ", 5);
 
       if (index(currfilename, '/') == NULL) {
@@ -103,9 +105,11 @@ print_result(char *cardname, int cardlen, long byte_offset)
     }
   } else
       strncpy(print_filename, currfilename, MAXPATH);
-  // Add in line numbers
-  snprintf(cardpos, MAXPATH, " - Line %ld:%ld", linenos[0], charposs[0]);
-  strncat(print_filename, cardpos, MAXPATH - strlen(print_filename));
+  // Add in line numbers - only for non xlsx
+  if (extracted_parent[0] == 0 || parent_type != MS_EXCELX) {
+    snprintf(cardpos, MAXPATH, " - Line %ld:%ld", linenos[0], charposs[0]);
+    strncat(print_filename, cardpos, MAXPATH - strlen(print_filename));
+  }
 
   /* MB we need to figure out how to update the count and spit out the final filename with the count.  ensure that it gets flushed out on the last match if you are doing a diff between previous filename and new filename */
 
@@ -308,6 +312,7 @@ ccsrch(char *filename)
   int    check = 0;
   long   lineno = 1;
   long   charpos = 1;
+  int    inside_xlsx_tag = 0;
   file_type       filetype;
 
   memset(&lastfilename,'\0',MAXPATH);
@@ -333,6 +338,7 @@ ccsrch(char *filename)
   reset_skip_chars();
 
   filetype = detect_file_type(filename);
+
   switch (filetype) {
     case ASCII:
     case UNKNOWN:
@@ -361,8 +367,7 @@ ccsrch(char *filename)
       // Do something specific with new word docs
       break;
     case MS_EXCELX:
-      // Do something specific with new excel docs
-      break;
+      return parse_xlsx(filename);
     case PDF:
       return convert_and_parse_pdf(filename);
     case ODT:
@@ -392,7 +397,26 @@ ccsrch(char *filename)
 
     while (ccsrch_index < cnt)
     {
-      if ((ccsrch_buf[ccsrch_index] > 47) && (ccsrch_buf[ccsrch_index] < 58))
+      if (processing_xlsx)
+      {
+        /* xlsx style Excel files. Needs to preempt everything else
+         * < and > characters are considered special in XML, and consequently
+         * can be safely assumed to be escaped when not representing opening and
+         * closing tags. We don't want to consider anything within tags.
+         */
+        check = 0; // Default
+        if (inside_xlsx_tag) {
+          if (ccsrch_buf[ccsrch_index] == '>')
+            inside_xlsx_tag = 0;
+        } else if (ccsrch_buf[ccsrch_index] == '<')
+          inside_xlsx_tag = 1;
+        else
+          check = 1;
+      }
+
+      if (processing_xlsx && !check) {
+        // Do nothing, we want to skip the tags
+      } else if ((ccsrch_buf[ccsrch_index] > 47) && (ccsrch_buf[ccsrch_index] < 58))
       {
         check = 1;
         cardbuf[counter] = ((int)ccsrch_buf[ccsrch_index])-48;
@@ -951,6 +975,9 @@ main(int argc, char *argv[])
   // Default shortcut option
   opt_shortcut = 0;
   shortcut_breakout = 0;
+
+  // Flag for correctly handling internal files from .xlsx Excel files
+  processing_xlsx = 0;
 
   while ((c = getopt(argc, argv,"befjt:To:s")) != -1)
   {
