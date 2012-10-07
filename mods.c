@@ -427,7 +427,8 @@ int unzip_and_parse(char *filename) {
 
         if (exit_code != 0){
 #ifdef DEBUG
-            fprintf(stderr, "failed to extract file %s\n", filename);
+            fprintf(stderr, "unzip_and_parse: failed to extract file %s\n",
+                    filename);
 #endif
             return 0;
         }
@@ -674,7 +675,7 @@ void remove_directory(char *dir) {
         fprintf(stderr, "remove_directory: unable to allocate memory. err=%d\n",
                 errno);
 #endif
-        return 0;
+        return;
     }
     memset(curr_path, '\0', MAXPATH+1);
     strncpy(curr_path, dir, MAXPATH);
