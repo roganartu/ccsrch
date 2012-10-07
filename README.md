@@ -160,6 +160,14 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.1.0 (Oct. 8, 2012):
+
+* Added .xlsx Excel handing
+* Fixed pdf handling
+* Added pdf tests
+* Added debugging output
+* Cleaned up pdf output in results
+
 1.0.10 (Oct. 7, 2012):
 
 * Added more possible mime types for Word and Excel files
