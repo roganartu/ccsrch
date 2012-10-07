@@ -160,6 +160,12 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.2.1 (Oct. 8, 2012):
+
+* Added ODS and OTS Open Document Spreadsheet handling
+* Added ODS and OTS tests
+* Fixed bug with temp directory removal
+
 1.2.0 (Oct. 8, 2012):
 
 * Added .docx Word handling
