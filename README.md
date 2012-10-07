@@ -42,6 +42,10 @@ Generic search for credit card data starting in c:\storage with output to mycard
 
 `ccsrch -o mycard.log c:\storage`
 
+Search for credit card data but stop processing a file as soon as CHD is found
+
+`ccsrch -s c:\storage`
+
 Search for credit card data and check for Track 2 data formats with output to screen:
 
 `ccsrch -t 2 ./`
@@ -55,6 +59,7 @@ Search for credit card data and check for Track 2 data formats with output to fi
 All output is tab deliminated with the following order (depending on the parameters):
 
 * Source File
+* Line Number (not supported for all file types)
 * Card Type
 * Card Number
 * Byte Offset
@@ -73,6 +78,9 @@ card numbers:
 3. Files are treated as raw binary objects and processed one character at a time.
 4. Solo and Switch cards are not processed in the prefix search.
 5. gzip, zip and tar archives are extracted and the archive files processed. Any other archive types must be manually extracted and checked.
+6. The core of .xlsx and .docx files are extracted and then processed. All tag metadata is ignored (ie: any data between < and >). Any data between tags is processed as a contiguous block.
+7. The line numbers for .docx and pdf files are unlikely to be hugely accurate. This is mostly due to the way they are extracted/converted before processing. They should give you a good idea of where to look, however.
+8. XML data is processed as ASCII. If there is CHD spanning across multiple XML elements ccsrch will not find it. This could potentially be remedied by maintaining a second buffer for inside tags
 
 **Prefix Logic**  
 The following prefixes are used to validate the potential card numbers that have passed the mod 10 (Luhn) algorithm check.
@@ -119,7 +127,7 @@ Valid Prefixes: 36, 300, 301, 302, 303, 304, 305, 380, 381, 382, 383, 384, 385, 
 
 ### Known Issues
 
-One typical observation/complaint is the number of false positives that still come up.  You will need to manually review and remove these. Certain patterns will repeatedly come up which match all of the criteria for valid cards, but are clearly bogus. If there are enough cries for help, I may add some additional sanity checks into the logic such as bank information. In addition, there are certain system files which clearly should not have cardholder data in them and can be ignored.  There may be an "ignore file list" in a new release to reduce the amount of stuff to go through, however this will impact the speed of the tool.
+One typical observation/complaint is the number of false positives that still come up. You will need to manually review and remove these. Certain patterns will repeatedly come up which match all of the criteria for valid cards, but are clearly bogus. If there are enough cries for help, I may add some additional sanity checks into the logic such as bank information. In addition, there are certain system files which clearly should not have cardholder data in them and can be ignored.  There may be an "ignore file list" in a new release to reduce the amount of stuff to go through, however this will impact the speed of the tool.
 
 Note that since this program opens up each file and processes it, obviously the access time (in epoch seconds) will change.  If you are going to do forensics, one assumes that you have already collected an image following standard forensic practices and either have already collected and preserved the MAC times, or are using this tool on a copy of the image.
 
@@ -135,14 +143,16 @@ This tool has been successfully compiled and run on the following operating syst
 
 ### Building
 
-Linux/Unix:  
+Linux/Unix and OSX:  
 
 ```none
 $ wget -O ccsrch.tar.gz https://github.com/roganartu/ccsrch/tarball/master
 $ tar -xvzf ccsrch.tar.gz 
 $ cd roganartu-ccsrch-<rev>/
 $ make all
-```
+```  
+Linux Users: Ensure you have pdftotext installed on your system. It is in the poppler-utils package which is included by default on most Unix systems.
+OSX Users: pdftotext is not available to you through package managers. There is an included precompiled OSX binary, so you need not worry.
 
 Windows:  
 Install [MinGW](http://www.mingw.org/) ([installer](http://sourceforge.net/projects/mingw/files/Installer/mingw-get-inst/))  
