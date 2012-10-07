@@ -850,6 +850,7 @@ usage(char *progname)
   printf("    -o <filename>  Output the data to the file <filename> vs. standard out\n");
 
   printf("    -t <1 or 2>\t   Check if the pattern follows either a Track 1 \n\t\t   or 2 format\n");
+  printf("    -s\t\t   Stop parsing a file as soon as CHD is found\n");
   printf("    -T\t\t   Check for both Track 1 and Track 2 patterns\n");
 
   printf("    -h\t\t   This stuff\n\n");
