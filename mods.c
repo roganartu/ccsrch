@@ -713,7 +713,7 @@ void remove_directory(char *dir) {
             strcat(curr_path, "/");
             remove_directory(curr_path);
         }
-        else if ((fstat.st_size > 0) && ((fstat.st_mode & S_IFMT) == S_IFREG))
+        else if ((fstat.st_mode & S_IFMT) == S_IFREG)
             remove(curr_path);
 
         // Reset the current path back to the base directory
