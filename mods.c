@@ -236,7 +236,12 @@ file_type detect_file_type(char *filename) {
                 type = OTS;
             else if (strstr(file_cmd_output, "opendocument.spreadsheet") != NULL)
                 type = ODS;
-            else if (strstr(file_cmd_output, "application/msword") != NULL) {
+            else if (strstr(file_cmd_output, "application/vnd.ms-excel") != NULL)
+                type = MS_EXCEL;
+            else if (strstr(file_cmd_output, "application/vnd.ms-word") != NULL)
+                type = MS_WORD;
+            else if (strstr(file_cmd_output, "application/msword") != NULL ||
+                    strstr(file_cmd_output, "application/vnd.ms-office") != NULL) {
                 // Due to poor msword filetype detection, we need to rely on
                 // file extensions here
                 if (strncmp(last_strstr(filename, "."), ".doc", 6) == 0)
