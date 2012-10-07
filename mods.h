@@ -67,6 +67,7 @@ typedef enum FILE_TYPES {
     EXECUTABLE,
     IMAGE,
     VIDEO,
+    AUDIO,
     BINARY,
     MS_WORD,
     MS_EXCEL,

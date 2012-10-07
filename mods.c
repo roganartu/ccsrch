@@ -162,120 +162,142 @@ pid_t pipe_and_fork(int *fd, bool reverse) {
  */
 file_type detect_file_type(char *filename) {
     char buffer[80], *pipe_output, full_filename[MAXPATH], *file_cmd_output;
-    int pipe, read_count;
+    int pipe, read_count, fork_count = 0;
     pid_t pid;
     file_type type;
     FILE *in_out;
 
-    pid = pipe_and_fork(&pipe, true);
-    if (pid == (pid_t) 0) {
-        /* Child */
-        dup2(pipe, STDOUT_FILENO);
-        //dup2(pipe, STDERR_FILENO); /* Remove comment if you need to debug */
+    // Default
+    type = UNKNOWN;
+    while (fork_count++ < 2) {
+        pid = pipe_and_fork(&pipe, true);
+        if (pid == (pid_t) 0) {
+            /* Child */
+            dup2(pipe, STDOUT_FILENO);
+            //dup2(pipe, STDERR_FILENO); /* Remove comment if you need to debug */
 
-        full_filename[0] = '\0';
-        if (filename[0] != '/')
-            strncat(full_filename, pwd, MAXPATH - strlen(full_filename));
-        strncat(full_filename, filename, MAXPATH - strlen(full_filename));
+            full_filename[0] = '\0';
+            if (filename[0] != '/')
+                strncat(full_filename, pwd, MAXPATH - strlen(full_filename));
+            strncat(full_filename, filename, MAXPATH - strlen(full_filename));
 
-        execlp("file", "file", "--mime", "-b", full_filename, NULL);
-
-        // Exec failed
-#ifdef DEBUG
-        perror("detect_file_type: failed to execlp \"file\"");
-#endif
-        close(pipe);
-        exit(errno);
-
-    } else if (pid > (pid_t) 0) {
-        /* Parent */
-        in_out = fdopen(pipe, "r");
-        file_cmd_output = malloc(80);
-        file_cmd_output[0] = '\0';
-        read_count = 1;
-        while (in_out != NULL && !feof(in_out)) {
-            pipe_output = fgets(buffer, 80, in_out);
-            if (pipe_output != NULL) {
-                file_cmd_output = realloc(file_cmd_output,
-                        strlen(file_cmd_output) + strlen(pipe_output) + 1);
-                strncat(file_cmd_output, pipe_output, 80);
-            }
-        }
-
-        // Work out what it is
-        if (file_cmd_output != NULL) {
-            if (strstr(file_cmd_output, "text/plain") != NULL)
-                type = ASCII;
-            else if (strstr(file_cmd_output, "application/x-executable") != NULL)
-                type = EXECUTABLE;
-            else if (strstr(file_cmd_output, "image/") != NULL)
-                type = IMAGE;
-            else if (strstr(file_cmd_output, "video/") != NULL)
-                type = VIDEO;
-            else if (strstr(file_cmd_output, "application/x-tar") != NULL)
-                type = TAR;
-            else if (strstr(file_cmd_output, "application/zip") != NULL) {
-                // Due to poor msword filetype detection, we need to rely on
-                // file extensions here
-                if (strncmp(last_strstr(filename, "."), ".docx", 7) == 0)
-                    type = MS_WORDX;
-                else if (strncmp(last_strstr(filename, "."), ".xlsx", 7) == 0)
-                    type = MS_EXCELX;
-                else
-                    // Make ZIP the default here
-                    type = ZIP;
-            }
-            else if (strstr(file_cmd_output, "application/x-gzip") != NULL)
-                type = GZIP;
-            else if (strstr(file_cmd_output, "application/xml") != NULL)
-                type = XML;
-            else if (strstr(file_cmd_output, "application/pdf") != NULL)
-                type = PDF;
-            else if (strstr(file_cmd_output, "opendocument.text-template") != NULL)
-                type = OTT;
-            else if (strstr(file_cmd_output, "opendocument.text") != NULL)
-                type = ODT;
-            else if (strstr(file_cmd_output, "opendocument.spreadsheet.template") != NULL)
-                type = OTS;
-            else if (strstr(file_cmd_output, "opendocument.spreadsheet") != NULL)
-                type = ODS;
-            else if (strstr(file_cmd_output, "application/vnd.ms-excel") != NULL)
-                type = MS_EXCEL;
-            else if (strstr(file_cmd_output, "application/vnd.ms-word") != NULL)
-                type = MS_WORD;
-            else if (strstr(file_cmd_output, "application/msword") != NULL ||
-                    strstr(file_cmd_output, "application/vnd.ms-office") != NULL) {
-                // Due to poor msword filetype detection, we need to rely on
-                // file extensions here
-                if (strncmp(last_strstr(filename, "."), ".doc", 6) == 0)
-                    type = MS_WORD;
-                else if (strncmp(last_strstr(filename, "."), ".xls", 6) == 0)
-                    type = MS_EXCEL;
-                else
-                    // Make MS_WORD the default here
-                    type = MS_WORD;
-            }
-            // This should stay last. Other legitimate mime types often use this charset
-            else if (strstr(file_cmd_output, "charset=binary") != NULL)
-                type = BINARY;
+            if (fork_count == 1)
+                execlp("file", "file", "--mime", "-b", full_filename, NULL);
             else
-                type = UNKNOWN;
+                execlp("file", "file", "-b", full_filename, NULL);
+
+            // Exec failed
+#ifdef DEBUG
+            perror("detect_file_type: failed to execlp \"file\"");
+#endif
+            close(pipe);
+            exit(errno);
+
+        } else if (pid > (pid_t) 0) {
+            /* Parent */
+            in_out = fdopen(pipe, "r");
+            file_cmd_output = malloc(80);
+            file_cmd_output[0] = '\0';
+            read_count = 1;
+            while (in_out != NULL && !feof(in_out)) {
+                pipe_output = fgets(buffer, 80, in_out);
+                if (pipe_output != NULL) {
+                    file_cmd_output = realloc(file_cmd_output,
+                            strlen(file_cmd_output) + strlen(pipe_output) + 1);
+                    strncat(file_cmd_output, pipe_output, 80);
+                }
+            }
+
+            // Work out what it is
+            if (file_cmd_output != NULL) {
+                if (strstr(file_cmd_output, "text/plain") != NULL)
+                    type = ASCII;
+                else if (strstr(file_cmd_output, "application/x-executable") !=
+                        NULL || strstr(file_cmd_output, "executable") != NULL ||
+                        strstr(file_cmd_output, "relocatable") != NULL)
+                    type = EXECUTABLE;
+                else if (strstr(file_cmd_output, "image/") != NULL ||
+                        strstr(file_cmd_output, "image data") != NULL)
+                    type = IMAGE;
+                else if (strstr(file_cmd_output, "video/") != NULL || 
+                        strstr(file_cmd_output, "video") != NULL ||
+                        strstr(file_cmd_output, "AVI") != NULL ||
+                        strstr(file_cmd_output, "MPEG") != NULL)
+                    type = VIDEO;
+                else if (strstr(file_cmd_output, "audio/") != NULL || 
+                        strstr(file_cmd_output, "application/octet-stream") !=
+                        NULL || strstr(file_cmd_output, "Audio file") != NULL)
+                    type = AUDIO;
+                else if (strstr(file_cmd_output, "application/x-tar") != NULL)
+                    type = TAR;
+                else if (strstr(file_cmd_output, "application/zip") != NULL) {
+                    // Due to poor msword filetype detection, we need to rely on
+                    // file extensions here
+                    if (strncmp(last_strstr(filename, "."), ".docx", 7) == 0)
+                        type = MS_WORDX;
+                    else if (strncmp(last_strstr(filename, "."), ".xlsx", 7) == 0)
+                        type = MS_EXCELX;
+                    else
+                        // Make ZIP the default here
+                        type = ZIP;
+                }
+                else if (strstr(file_cmd_output, "application/x-gzip") != NULL)
+                    type = GZIP;
+                else if (strstr(file_cmd_output, "application/xml") != NULL)
+                    type = XML;
+                else if (strstr(file_cmd_output, "application/pdf") != NULL)
+                    type = PDF;
+                else if (strstr(file_cmd_output, "opendocument.text-template") != NULL)
+                    type = OTT;
+                else if (strstr(file_cmd_output, "opendocument.text") != NULL)
+                    type = ODT;
+                else if (strstr(file_cmd_output, "opendocument.spreadsheet.template") != NULL)
+                    type = OTS;
+                else if (strstr(file_cmd_output, "opendocument.spreadsheet") != NULL)
+                    type = ODS;
+                else if (strstr(file_cmd_output, "application/vnd.ms-excel") != NULL)
+                    type = MS_EXCEL;
+                else if (strstr(file_cmd_output, "application/vnd.ms-word") != NULL)
+                    type = MS_WORD;
+                else if (strstr(file_cmd_output, "application/msword") != NULL ||
+                        strstr(file_cmd_output, "application/vnd.ms-office") != NULL) {
+                    // Due to poor msword filetype detection, we need to rely on
+                    // file extensions here
+                    if (strncmp(last_strstr(filename, "."), ".doc", 6) == 0)
+                        type = MS_WORD;
+                    else if (strncmp(last_strstr(filename, "."), ".xls", 6) == 0)
+                        type = MS_EXCEL;
+                    else
+                        // Make MS_WORD the default here
+                        type = MS_WORD;
+                }
+                // This should stay last. Other legitimate mime types often use this charset
+                else if (fork_count == 2 && strstr(file_cmd_output, "binary") !=
+                         NULL)
+                    type = BINARY;
+                else
+                    type = UNKNOWN;
+            }
+
+            // Clean up
+            wait(NULL);
+            close(pipe);
+            free(file_cmd_output);
+
+#ifdef DEBUG
+        } else {
+            /* Fork failed */
+            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+#endif
         }
 
-        // Clean up
-        wait(NULL);
-        close(pipe);
-        free(file_cmd_output);
+        // Only check again if we didn't know what it was
+        if (type != UNKNOWN)
+            break;
 
-        return type;
-#ifdef DEBUG
-    } else {
-        /* Fork failed */
-        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
-#endif
     }
 
-    return UNKNOWN;
+    return type;
 }
 
 /*

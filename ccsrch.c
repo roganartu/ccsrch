@@ -359,6 +359,7 @@ ccsrch(char *filename)
     case BINARY:
     case IMAGE:
     case VIDEO:
+    case AUDIO:
       skipped_executable_count++;
       return -1;
     case TAR:
