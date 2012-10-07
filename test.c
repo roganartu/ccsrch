@@ -14,6 +14,7 @@
  *                  Justin Vu <justin.vu90@gmail.com>
  *                  Nils Albjerk <nils.albjerk@gmail.com>
  *                  Dan Benveniste <dan.benveniste@gmail.com>
+ *                  Michael Holzheimer <michael@mholzheimer.com>
  *   Organisation:  University of Queensland - COMS3000 Semester 2 2012
  *
  * =====================================================================
@@ -65,6 +66,15 @@ int main(int argc, char *argv[]) {
     /* Image file detection */
     fprintf(output, "%s\n", "==== Default Separator Tests ================");
     ignore_char_detection(output);
+
+    fprintf(output, "%s", "\n\n");
+    
+    /* Compressed files */
+    fprintf(output, "%s\n", "==== Compressed files =======================");
+    compression_tests(output);
+    
+    
+    fprintf(output, "%s", "\n\n");
 }
 
 /* 
@@ -532,6 +542,84 @@ void ignore_char_detection(FILE *output) {
             while (in_out != NULL && !feof(in_out)) {
                 fgets(buffer, 80, in_out);
                 if (strstr(buffer, "Credit card matches ->\t\t3") != NULL) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found)
+                fprintf(output, "%s", ".");
+            else
+                fprintf(output, "%s", "F");
+
+            wait(NULL);
+            close(pipe);
+        } else {
+            /* Fork failed */
+            fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+        }
+    }
+}
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  compression_tests
+ *
+ *  Description:  Verifies that the modified ccsrch successfully detects, unpacks
+ *                and parses compressed files.
+ *                Tests, in order:
+ *                    tar.gzip
+ *                    mac os zip file
+ *                    zip file
+ *                    zip file containing zip files
+ *                
+ *      Version:  0.0.1
+ *       Params:  FILE *output
+ *      Returns:  void
+ *        Usage:  ignore_char_detection( FILE *output )
+ *      Outputs:  Ignore character detection test results
+ * =============================================================================
+ */
+void compression_tests(FILE *output) {
+    int num_tests = 4;
+    char buffer[80], test_files[num_tests][MAXPATH], expected_results[num_tests][MAXPATH];
+    int i, j, pipe;
+    pid_t pid;
+    FILE *in_out;
+    bool found;
+
+    /* Initialise as empty strings */
+    for ( i = 0; i < MAXPATH; i++ ) {
+        for ( j = 0; j < num_tests; j++ ) {
+            test_files[j][i] = '\0';
+            expected_results[j][i] = '\0';
+        }
+    }
+
+    strncpy(test_files[0], "./tests/tartest.tar.gz", MAXPATH);
+    strncpy(test_files[1], "./tests/test.mac.zip", MAXPATH);
+    strncpy(test_files[2], "./tests/test.zip", MAXPATH);
+    strncpy(test_files[3], "./tests/test2.zip", MAXPATH);
+
+	strncpy(expected_results[0], "Credit card matches ->\t\t9", MAXPATH);
+    strncpy(expected_results[1], "Credit card matches ->\t\t30", MAXPATH);
+    strncpy(expected_results[2], "Credit card matches ->\t\t30", MAXPATH);
+    strncpy(expected_results[3], "Credit card matches ->\t\t15", MAXPATH);
+
+    for ( i = 0; i < num_tests; i++ ) {
+        pid = pipe_and_fork(&pipe, true);
+        if (pid == (pid_t) 0) {
+            /* Child */
+            dup2(pipe, STDOUT_FILENO);
+            dup2(pipe, STDERR_FILENO);
+            execl("./ccsrch", "ccsrch", test_files[i], NULL);
+
+        } else if (pid > (pid_t) 0) {
+            /* Parent */
+            in_out = fdopen(pipe, "r");
+            found = false;
+            while (in_out != NULL && !feof(in_out)) {
+                fgets(buffer, 80, in_out);
+                if (strstr(buffer, expected_results[i]) != NULL) {
                     found = true;
                     break;
                 }
