@@ -48,7 +48,7 @@ test: clean ccsrch ccsrchtest.o test.o
 	${CC} ${CFLAGS} ${INCL} ${LDFLAGS} ${OBJS} test.o ${LIBSDIR} ${LIBS} -o test
 
 clean:
-	rm -f core *.core ${PROGS} ${OBJS} ccsrch.exe
+	rm -f core *.core ${PROGS} ${OBJS} test.o ccsrch.exe
 
 ccsrchtest.o:
 	${CC} ${CFLAGS} ${INCL} -c ccsrch.c -D TEST_MAIN
