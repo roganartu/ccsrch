@@ -180,7 +180,9 @@ file_type detect_file_type(char *filename) {
         execlp("file", "file", "--mime", "-b", full_filename, NULL);
 
         // Exec failed
-        perror("Failed to execlp \"file\"");
+#ifdef DEBUG
+        perror("detect_file_type: failed to execlp \"file\"");
+#endif
         close(pipe);
         exit(errno);
 
@@ -265,9 +267,11 @@ file_type detect_file_type(char *filename) {
         free(file_cmd_output);
 
         return type;
+#ifdef DEBUG
     } else {
         /* Fork failed */
         fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+#endif
     }
 
     return UNKNOWN;
@@ -308,8 +312,10 @@ void reset_skip_chars(void) {
         skipchars = realloc(skipchars, 4);
 
     if (skipchars == NULL) {
+#ifdef DEBUG
         fprintf(stderr, "reset_skip_chars: can't allocate memory; errno=%d\n",
                 errno);
+#endif
         exit(ENOMEM);
     }
 
@@ -380,8 +386,10 @@ int unzip_and_parse(char *filename) {
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
+#ifdef DEBUG
         fprintf(stderr, "unzip_and_parse: unable to create temp directory: err=%d\n",
                 errno);
+#endif
         return 0;
     }
 
@@ -415,16 +423,22 @@ int unzip_and_parse(char *filename) {
 
         wait(&statval);
         if(WIFEXITED(statval))
-        	exit_code = WEXITSTATUS(statval);
+            exit_code = WEXITSTATUS(statval);
 
         if (exit_code != 0){
+#ifdef DEBUG
             fprintf(stderr, "failed to extract file %s\n", filename);
+#endif
+            return 0;
         }
+
         close(pipe);
     } else {
         /* Fork failed */
+#ifdef DEBUG
         fprintf(stderr, "\n%s\n", "unzip_and_parse: failed to pipe and fork\n");
-        exit(ENOSYS);
+#endif
+        return 0;
     }
 
     // Now that we've unzipped, let's parse that folder and then delete it
@@ -471,7 +485,9 @@ int gunzip_and_parse(char *filename) {
     temp_file = mkstemp(template);
 
     if (temp_file < 1) {
+#ifdef DEBUG
         fprintf(stderr, "gunzip_and_parse: unable to create tmp folder\n");
+#endif
         return 0;
     }
 
@@ -500,14 +516,18 @@ int gunzip_and_parse(char *filename) {
         close(pipe);
 
         if (exit_code != 0){
+#ifdef DEBUG
             fprintf(stderr, "gunzip_and_parse: failed to extract file %s | exit_code=%d\n",
                     filename, exit_code);
+#endif
             return 0;
         }
     } else {
         /* Fork failed */
+#ifdef DEBUG
         fprintf(stderr, "\n%s\n", "gunzip_and_parse: failed to pipe and fork\n");
-        exit(ENOSYS);
+#endif
+        return 0;
     }
 
     // Now that we've gunzipped, let's parse that file and then delete it
@@ -552,7 +572,9 @@ int untar_and_parse(char *filename) {
     char template[] = "ccsrch-tmp_folder-XXXXXX";
 
     if (mkdtemp(template) == NULL) {
+#ifdef DEBUG
         fprintf(stderr, "untar_and_parse: unable to create tmp folder\n");
+#endif
         return 0;
     }
 
@@ -591,14 +613,18 @@ int untar_and_parse(char *filename) {
         close(pipe);
 
         if (exit_code != 0){
+#ifdef DEBUG
             fprintf(stderr, "untar_and_parse: failed to extract file %s | exit_code=%d\n",
                     filename, exit_code);
+#endif
             return 0;
         }
     } else {
         /* Fork failed */
+#ifdef DEBUG
         fprintf(stderr, "\n%s\n", "untar_and_parse: failed to pipe and fork\n");
-        exit(ENOSYS);
+#endif
+        return 0;
     }
 
     // Now that we've unzipped, let's parse that folder and then delete it
@@ -644,9 +670,11 @@ void remove_directory(char *dir) {
 
     curr_path = malloc(MAXPATH + 1);
     if (curr_path == NULL) {
+#ifdef DEBUG
         fprintf(stderr, "remove_directory: unable to allocate memory. err=%d\n",
                 errno);
-        exit(ENOMEM);
+#endif
+        return 0;
     }
     memset(curr_path, '\0', MAXPATH+1);
     strncpy(curr_path, dir, MAXPATH);
@@ -668,10 +696,12 @@ void remove_directory(char *dir) {
         err = get_file_stat(curr_path, &fstat);
 
         if (err == -1) {
+#ifdef DEBUG
             if (errno == ENOENT)
-                fprintf(stderr, "proc_dir_list: file %s not found, can't stat\n", curr_path);
+                fprintf(stderr, "remove_directory: file %s not found, can't stat\n", curr_path);
             else
-                fprintf(stderr, "proc_dir_list: Cannot stat file %s; errno=%d\n", curr_path, errno);
+                fprintf(stderr, "remove_directory: Cannot stat file %s; errno=%d\n", curr_path, errno);
+#endif
             closedir(dirptr);
             exit(errno);
         }
@@ -722,7 +752,9 @@ int convert_and_parse_pdf(char *filename) {
     temp_file = mkstemp(template);
 
     if (temp_file < 1) {
+#ifdef DEBUG
         fprintf(stderr, "convert_and_parse_pdf: unable to create temp file\n");
+#endif
         return 0;
     }
 
@@ -749,7 +781,9 @@ int convert_and_parse_pdf(char *filename) {
         close(pipe);
     } else {
         /* Fork failed */
+#ifdef DEBUG
         fprintf(stderr, "\n%s\n", "convert_and_parse_pdf: failed to pipe and fork\n");
+#endif
         exit(ENOSYS);
     }
 

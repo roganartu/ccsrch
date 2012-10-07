@@ -316,10 +316,12 @@ ccsrch(char *filename)
   in = fopen(filename, "rb");
   if (in == NULL)
   {
+#ifdef DEBUG
     if (errno==13)
       fprintf(stderr, "ccsrch: Unable to open file %s for reading; Permission Denied\n", filename);
     else
       fprintf(stderr, "ccsrch: Unable to open file %s for reading; errno=%d\n", filename, errno);
+#endif
     return (-1);
   }
   infd = fileno(in);
@@ -502,7 +504,9 @@ escape_space(char *infile, char *outfile)
   tmpbuf = (char *)malloc(newlen);
   if (tmpbuf == NULL)
   {
+#ifdef DEBUG
     fprintf(stderr, "escape_space: can't allocate memory; errno=%d\n", errno);
+#endif
     return (1);
   }
   memset(tmpbuf, '\0', newlen);
@@ -538,7 +542,9 @@ get_file_stat(char *inputfile, struct stat * fileattr)
   tmp2buf = (char *) malloc(filelen+1);
   if (tmp2buf == NULL)
   {
+#ifdef DEBUG
     fprintf(stderr, "get_file_stat: can't allocate memory; errno=%d\n", errno);
+#endif
     return (1);
   }
   memset(tmp2buf, '\0', filelen+1);
@@ -548,10 +554,12 @@ get_file_stat(char *inputfile, struct stat * fileattr)
   err = stat(tmp2buf, &ffattr);
   if (err != 0)
   {
+#ifdef DEBUG
     if (errno == ENOENT)
       fprintf(stderr, "get_file_stat: File %s not found, can't get stat info\n", inputfile);
     else
       fprintf(stderr, "get_file_stat: Cannot stat file %s; errno=%d\n", inputfile, errno);
+#endif
     free(tmp2buf);
     return (-1);
   }
@@ -585,14 +593,18 @@ proc_dir_list(char *instr)
 
   if (dirptr == NULL)
   {
+#ifdef DEBUG
     fprintf(stderr, "proc_dir_list: Can't open dir %s; errno=%d\n", instr, errno);
+#endif
     return (1);
   }
   errno = 0;
   curr_path = (char *)malloc(MAXPATH + 1);
   if (curr_path == NULL)
   {
+#ifdef DEBUG
     fprintf(stderr, "proc_dir_list: Can't allocate enough space; errno=%d\n", errno);
+#endif
     closedir(dirptr);
     return (1);
   }
@@ -616,10 +628,12 @@ proc_dir_list(char *instr)
 
     if (err == -1)
     {
+#ifdef DEBUG
       if (errno == ENOENT)
         fprintf(stderr, "proc_dir_list: file %s not found, can't stat\n", curr_path);
       else
         fprintf(stderr, "proc_dir_list: Cannot stat file %s; errno=%d\n", curr_path, errno);
+#endif
       closedir(dirptr);
       return (1);
     }
@@ -890,7 +904,10 @@ open_logfile()
     logfilefd = fopen(logfilename, "a+");
     if (logfilefd == NULL)
     {
-      fprintf(stderr, "Unable to open logfile %s for writing; errno=%d\n", logfilename, errno);
+#ifdef DEBUG
+      fprintf(stderr, "open_logfile: unable to open logfile %s for writing; errno=%d\n",
+          logfilename, errno);
+#endif
       return (-1);
     }
     stat(logfilename, &log_file_stat);
