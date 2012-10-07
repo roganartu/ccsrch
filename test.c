@@ -88,6 +88,11 @@ int main(int argc, char *argv[]) {
     /* ODS files */
     fprintf(output, "%s\n", "==== ODS files ==============================");
     run_test(output, ODS);
+    fprintf(output, "%s", "\n\n");
+
+    /* ODT files */
+    fprintf(output, "%s\n", "==== ODT files ==============================");
+    run_test(output, ODT);
     return 0;
 }
 
@@ -415,6 +420,14 @@ void sanity_checks(FILE *output) {
  *                        ods.ods
  *                        ots.ots
  *
+ *                ODT TESTS - Format: ODT
+ *                    Verifies that the modified ccsrch successfully detects,
+ *                    unpacks and parses ODT and OTT Open Document formatted
+ *                    documents.
+ *                    Tests, in order:
+ *                        odt.odt
+ *                        ott.ott
+ *
  *      Version:  0.0.1
  *       Params:  FILE *output
  *                file_type type
@@ -447,6 +460,7 @@ void run_test(FILE *output, file_type type) {
             num_tests = 1;
             break;
         case ODS:
+        case ODT:
             num_tests = 2;
             break;
     }
@@ -518,6 +532,13 @@ void run_test(FILE *output, file_type type) {
         case ODS:
             strncpy(test_files[0], "tests/ods.ods", MAXPATH);
             strncpy(test_files[1], "tests/ots.ots", MAXPATH);
+            for ( i = 0; i < num_tests; i++ )
+                strncpy(expected_results[i], "Credit card matches ->\t\t3",
+                        MAXPATH);
+            break;
+        case ODT:
+            strncpy(test_files[0], "tests/odt.odt", MAXPATH);
+            strncpy(test_files[1], "tests/ott.ott", MAXPATH);
             for ( i = 0; i < num_tests; i++ )
                 strncpy(expected_results[i], "Credit card matches ->\t\t3",
                         MAXPATH);
