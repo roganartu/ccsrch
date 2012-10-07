@@ -101,6 +101,8 @@ print_result(char *cardname, int cardlen, long byte_offset)
 
   if (print_filename_only)
     snprintf(basebuf, MDBUFSIZE, "%s", print_filename);
+  else if (strlen(cardname) < 7)
+    snprintf(basebuf, MDBUFSIZE, "%s\t%s\t\t%s", print_filename, cardname, nbuf);
   else
     snprintf(basebuf, MDBUFSIZE, "%s\t%s\t%s", print_filename, cardname, nbuf);
 
