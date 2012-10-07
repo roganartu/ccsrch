@@ -160,6 +160,13 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.0.8 (Oct. 7, 2012):
+
+* Added line numbers to results
+* Added compressed file tests
+* Added checking of sub process exit codes
+* Cleaned up compiler warnings
+
 1.0.7 (Oct. 7, 2012):
 
 * Added gzip and tar handling
