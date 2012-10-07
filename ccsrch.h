@@ -41,7 +41,7 @@
   #define SIGQUIT 3
 #endif
 
-#define PROG_VER "ccsrch 1.1.0 (c) 2012S2 COMS3000 Assignment 2 Group (CCFinders)"
+#define PROG_VER "ccsrch 1.2.0 (c) 2012S2 COMS3000 Assignment 2 Group (CCFinders)"
 
 #define MDBUFSIZE 512
 #define MAXPATH 2048

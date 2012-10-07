@@ -160,6 +160,13 @@ Don't change the version numbers. If you have to change the them, do it in a sep
 
 ### Revisions
 
+1.2.0 (Oct. 8, 2012):
+
+* Added .docx Word handling
+* Added .docx tests
+* Added .xlsx tests
+* Refactored test suite
+
 1.1.0 (Oct. 8, 2012):
 
 * Added .xlsx Excel handing
