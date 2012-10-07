@@ -90,9 +90,10 @@ print_result(char *cardname, int cardlen, long byte_offset)
   if (extracted_parent[0] != 0) {
     strncpy(print_filename, extracted_parent, MAXPATH);
 
-    // Don't display the extracted file name with PDFs or Excels
+    // Don't display the extracted file name with PDF, Excel or Word
     parent_type = detect_file_type(extracted_parent);
-    if (parent_type != PDF && parent_type != MS_EXCELX) {
+    if (parent_type != PDF && parent_type != MS_EXCELX &&
+        parent_type != MS_WORDX) {
       strncat(print_filename, " -> ", 5);
 
       if (index(currfilename, '/') == NULL) {
@@ -312,7 +313,7 @@ ccsrch(char *filename)
   int    check = 0;
   long   lineno = 1;
   long   charpos = 1;
-  int    inside_xlsx_tag = 0;
+  int    inside_xml_tag = 0;
   file_type       filetype;
 
   memset(&lastfilename,'\0',MAXPATH);
@@ -364,8 +365,7 @@ ccsrch(char *filename)
       // Do something specific with excel
       break;
     case MS_WORDX:
-      // Do something specific with new word docs
-      break;
+      return parse_docx(filename);
     case MS_EXCELX:
       return parse_xlsx(filename);
     case PDF:
@@ -397,24 +397,39 @@ ccsrch(char *filename)
 
     while (ccsrch_index < cnt)
     {
-      if (processing_xlsx)
+      if (processing_xlsx || processing_docx)
       {
-        /* xlsx style Excel files. Needs to preempt everything else
+        /* New age office programs. Needs to preempt everything else
          * < and > characters are considered special in XML, and consequently
          * can be safely assumed to be escaped when not representing opening and
          * closing tags. We don't want to consider anything within tags.
          */
         check = 0; // Default
-        if (inside_xlsx_tag) {
+        if (inside_xml_tag) {
+          // Check for new lines in word. This could miss some if they span over
+          // the end of ccsrch_buf. Likelihood low though
+          if (processing_docx && ccsrch_buf[ccsrch_index] == '/' &&
+              ccsrch_index + 1 < cnt && ccsrch_buf[ccsrch_index + 1] == 'w' &&
+              ccsrch_index + 2 < cnt && ccsrch_buf[ccsrch_index + 2] == ':' &&
+              ccsrch_index + 3 < cnt && ccsrch_buf[ccsrch_index + 3] == 'r' &&
+              ccsrch_index + 4 < cnt && ccsrch_buf[ccsrch_index + 4] == '>')
+          {
+            lineno++;
+            charpos = 1;
+          }
           if (ccsrch_buf[ccsrch_index] == '>')
-            inside_xlsx_tag = 0;
+            inside_xml_tag = 0;
         } else if (ccsrch_buf[ccsrch_index] == '<')
-          inside_xlsx_tag = 1;
+          inside_xml_tag = 1;
         else
+        {
+          // Not inside a tag. This is doc content not metadata
           check = 1;
+          charpos++;
+        }
       }
 
-      if (processing_xlsx && !check) {
+      if ((processing_xlsx || processing_docx) && !check) {
         // Do nothing, we want to skip the tags
       } else if ((ccsrch_buf[ccsrch_index] > 47) && (ccsrch_buf[ccsrch_index] < 58))
       {
@@ -490,7 +505,9 @@ ccsrch(char *filename)
         counter--;
       }
       byte_offset++;
-      charpos++;
+      // Word handling implements it's own charpos incrementing
+      if (!processing_docx && !processing_xlsx)
+        charpos++;
       ccsrch_index++;
 
       // Abide by shortcut option
@@ -976,8 +993,9 @@ main(int argc, char *argv[])
   opt_shortcut = 0;
   shortcut_breakout = 0;
 
-  // Flag for correctly handling internal files from .xlsx Excel files
+  // Flag for correctly handling internal files from new Office programs
   processing_xlsx = 0;
+  processing_docx = 0;
 
   while ((c = getopt(argc, argv,"befjt:To:s")) != -1)
   {

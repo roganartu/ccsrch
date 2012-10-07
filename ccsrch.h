@@ -57,6 +57,7 @@ int shortcut_breakout;
 long linenos[CARDSIZE];
 long charposs[CARDSIZE];
 int processing_xlsx;
+int processing_docx;
 
 int ccsrch (char *str);
 int check_mastercard_16(long offset);
