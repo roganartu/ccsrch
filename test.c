@@ -79,6 +79,18 @@ int main(int argc, char *argv[]) {
     fprintf(output, "%s\n", "==== PDF files ==============================");
     pdf_tests(output);
 
+    fprintf(output, "%s", "\n\n");
+
+    /* .xlsx files */
+    fprintf(output, "%s\n", "==== .xlsx files ============================");
+    xlsx_tests(output);
+
+
+    fprintf(output, "%s", "\n\n");
+
+    /* .docx files */
+    fprintf(output, "%s\n", "==== .docx files ============================");
+    docx_tests(output);
     return 0;
 }
 
@@ -672,6 +684,128 @@ void pdf_tests(FILE *output) {
 
     strncpy(test_file, "tests/pdf.pdf", MAXPATH);
     strncpy(expected_result, "Credit card matches ->\t\t15", MAXPATH);
+   
+    pid = pipe_and_fork(&pipe, true);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        dup2(pipe, STDOUT_FILENO);
+        dup2(pipe, STDERR_FILENO);
+        execl("./ccsrch", "ccsrch", test_file, NULL);
+
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        in_out = fdopen(pipe, "r");
+        found = false;
+        while (in_out != NULL && !feof(in_out)) {
+            fgets(buffer, 80, in_out);
+            if (strstr(buffer, expected_result) != NULL) {
+                found = true;
+                break;
+            }
+        }
+        if (found)
+            fprintf(output, "%s", ".");
+        else
+            fprintf(output, "%s", "F");
+
+        wait(NULL);
+        close(pipe);
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+    }
+}
+
+/*
+ * ===  FUNCTION  ==============================================================
+ *         Name:  xlsx_tests
+ *
+ *  Description:  Verifies that the modified ccsrch successfully detects,
+ *                unpacks and parses xlsx documents.
+ *      Version:  0.0.1
+ *       Params:  FILE *output
+ *      Returns:  void
+ *        Usage:  xlsx_tests( FILE *output )
+ *      Outputs:  .xlsx parsing test results
+ * =============================================================================
+ */
+void xlsx_tests(FILE *output) {
+    int num_tests = 4;
+    char buffer[80], test_file[MAXPATH], expected_result[MAXPATH];
+    int i, pipe;
+    pid_t pid;
+    FILE *in_out;
+    bool found;
+
+    /* Initialise as empty strings */
+    for ( i = 0; i < MAXPATH; i++ ) {
+        test_file[i]= '\0';
+        expected_result[i] = '\0';
+    }
+
+    strncpy(test_file, "tests/xlsx.xlsx", MAXPATH);
+    strncpy(expected_result, "Credit card matches ->\t\t3", MAXPATH);
+   
+    pid = pipe_and_fork(&pipe, true);
+    if (pid == (pid_t) 0) {
+        /* Child */
+        dup2(pipe, STDOUT_FILENO);
+        dup2(pipe, STDERR_FILENO);
+        execl("./ccsrch", "ccsrch", test_file, NULL);
+
+    } else if (pid > (pid_t) 0) {
+        /* Parent */
+        in_out = fdopen(pipe, "r");
+        found = false;
+        while (in_out != NULL && !feof(in_out)) {
+            fgets(buffer, 80, in_out);
+            if (strstr(buffer, expected_result) != NULL) {
+                found = true;
+                break;
+            }
+        }
+        if (found)
+            fprintf(output, "%s", ".");
+        else
+            fprintf(output, "%s", "F");
+
+        wait(NULL);
+        close(pipe);
+    } else {
+        /* Fork failed */
+        fprintf(stderr, "\n%s\n", "Failed to pipe and fork");
+    }
+}
+
+/*
+ * ===  FUNCTION  ==============================================================
+ *         Name:  docx_tests
+ *
+ *  Description:  Verifies that the modified ccsrch successfully detects,
+ *                unpacks and parses docx documents.
+ *      Version:  0.0.1
+ *       Params:  FILE *output
+ *      Returns:  void
+ *        Usage:  docx_tests( FILE *output )
+ *      Outputs:  .docx parsing test results
+ * =============================================================================
+ */
+void docx_tests(FILE *output) {
+    int num_tests = 4;
+    char buffer[80], test_file[MAXPATH], expected_result[MAXPATH];
+    int i, pipe;
+    pid_t pid;
+    FILE *in_out;
+    bool found;
+
+    /* Initialise as empty strings */
+    for ( i = 0; i < MAXPATH; i++ ) {
+        test_file[i]= '\0';
+        expected_result[i] = '\0';
+    }
+
+    strncpy(test_file, "tests/docx.docx", MAXPATH);
+    strncpy(expected_result, "Credit card matches ->\t\t3", MAXPATH);
    
     pid = pipe_and_fork(&pipe, true);
     if (pid == (pid_t) 0) {

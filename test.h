@@ -52,4 +52,8 @@ void compression_tests(FILE *output);
 
 void pdf_tests(FILE *output);
 
+void xlsx_tests(FILE *output);
+
+void docx_tests(FILE *output);
+
 #endif
