@@ -174,8 +174,8 @@ file_type detect_file_type(char *filename) {
 
         full_filename[0] = '\0';
         if (filename[0] != '/')
-            strncat(full_filename, pwd, MAXPATH);
-        strncat(full_filename, filename, MAXPATH);
+            strncat(full_filename, pwd, MAXPATH - strlen(full_filename));
+        strncat(full_filename, filename, MAXPATH - strlen(full_filename));
 
         execlp("file", "file", "--mime", "-b", full_filename, NULL);
 

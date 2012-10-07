@@ -95,7 +95,7 @@ print_result(char *cardname, int cardlen, long byte_offset)
       strncpy(print_filename, currfilename, MAXPATH);
   // Add in line numbers
   snprintf(cardpos, MAXPATH, " - Line %ld:%ld", linenos[0], charposs[0]);
-  strncat(print_filename, cardpos, MAXPATH);
+  strncat(print_filename, cardpos, MAXPATH - strlen(print_filename));
 
   /* MB we need to figure out how to update the count and spit out the final filename with the count.  ensure that it gets flushed out on the last match if you are doing a diff between previous filename and new filename */
 
@@ -106,13 +106,13 @@ print_result(char *cardname, int cardlen, long byte_offset)
   else
     snprintf(basebuf, MDBUFSIZE, "%s\t%s\t%s", print_filename, cardname, nbuf);
 
-  strncat(buf,basebuf,MAXPATH);
+  strncat(buf,basebuf,MAXPATH - strlen(buf));
 
     if (print_byte_offset)
     {
       memset(&bytebuf,'\0',MDBUFSIZE);
       snprintf(bytebuf, MDBUFSIZE, "\t%ld", byte_offset);
-      strncat(buf,bytebuf,MAXPATH);
+      strncat(buf,bytebuf,MAXPATH - strlen(buf));
     }
 
     if (print_julian_time)
@@ -131,14 +131,14 @@ print_result(char *cardname, int cardlen, long byte_offset)
 
       memset(&datebuf,'\0',MDBUFSIZE);
       snprintf(datebuf, MDBUFSIZE, "\t%s\t%s\t%s", mdatebuf,adatebuf,cdatebuf);
-      strncat(buf,datebuf,MAXPATH);
+      strncat(buf,datebuf,MAXPATH - strlen(buf));
     }
 
     if (print_epoch_time)
     {
       memset(&datebuf,'\0',MDBUFSIZE);
       snprintf(datebuf, MDBUFSIZE, "\t%ld\t%ld\t%ld", currfile_mtime,currfile_atime,currfile_ctime);
-      strncat(buf,datebuf,MAXPATH);
+      strncat(buf,datebuf,MAXPATH - strlen(buf));
     }
 
     if (tracksrch)
@@ -158,7 +158,7 @@ print_result(char *cardname, int cardlen, long byte_offset)
           snprintf(trackbuf, MDBUFSIZE, "\tTRACK_2");
         }
       }
-      strncat(buf,trackbuf,MAXPATH);
+      strncat(buf,trackbuf,MAXPATH - strlen(buf));
     }
   if (logfilefd != NULL)
     fprintf(logfilefd, "%s\n", buf);
