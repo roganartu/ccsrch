@@ -83,6 +83,11 @@ int main(int argc, char *argv[]) {
     /* .docx files */
     fprintf(output, "%s\n", "==== .docx files ============================");
     run_test(output, MS_WORDX);
+    fprintf(output, "%s", "\n\n");
+
+    /* ODS files */
+    fprintf(output, "%s\n", "==== ODS files ==============================");
+    run_test(output, ODS);
     return 0;
 }
 
@@ -402,6 +407,14 @@ void sanity_checks(FILE *output) {
  *                    Verifies that the modified ccsrch successfully detects,
  *                    unpacks and parses docx documents.
  *
+ *                ODS TESTS - Format: ODS
+ *                    Verifies that the modified ccsrch successfully detects,
+ *                    unpacks and parses ODS and OTS Open Document Spreadsheet
+ *                    formatted documents.
+ *                    Tests, in order:
+ *                        ods.ods
+ *                        ots.ots
+ *
  *      Version:  0.0.1
  *       Params:  FILE *output
  *                file_type type
@@ -432,6 +445,9 @@ void run_test(FILE *output, file_type type) {
         case MS_EXCELX:
         case MS_WORDX:
             num_tests = 1;
+            break;
+        case ODS:
+            num_tests = 2;
             break;
     }
 
@@ -498,6 +514,14 @@ void run_test(FILE *output, file_type type) {
         case MS_WORDX:
             strncpy(test_files[0], "tests/docx.docx", MAXPATH);
             strncpy(expected_results[0], "Credit card matches ->\t\t3", MAXPATH);
+            break;
+        case ODS:
+            strncpy(test_files[0], "tests/ods.ods", MAXPATH);
+            strncpy(test_files[1], "tests/ots.ots", MAXPATH);
+            for ( i = 0; i < num_tests; i++ )
+                strncpy(expected_results[i], "Credit card matches ->\t\t3",
+                        MAXPATH);
+            break;
     }
 
     // Loop counts
