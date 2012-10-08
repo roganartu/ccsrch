@@ -137,13 +137,15 @@ We have found that for some POS software log files are generated that not only w
 
 Please note that ccsrch recurses through the filesystem given a start directory and will attempt to open any file or object read-only one at a time. Given that this could be performance or load intensive depending on the existing load on the system or its configuration, we recommend that you run the tool on a subset or sample of directories first in order to get an idea of the potential impact. We disclaim all liability for any performance impact, outages, or problems ccsrch could cause.
 
+Due to Windows not having a GNU licensed, portable pdftotext tool, it has no PDF parsing support.
+
 ### Porting
 
 This tool has been successfully compiled and run on the following operating systems: FreeBSD, Linux, SCO 5.0.4-5.0.7, Solaris 8, AIX 4.1.X, Windows 2000, Windows XP, and Windows 7.  If you have any issues getting it to run on any systems, please contact the author.
 
 ### Building
 
-Linux/Unix and OSX:  
+#### Linux/Unix and OSX:  
 
 ```none
 $ wget -O ccsrch.tar.gz https://github.com/roganartu/ccsrch/tarball/master
@@ -151,12 +153,16 @@ $ tar -xvzf ccsrch.tar.gz
 $ cd roganartu-ccsrch-<rev>/
 $ make all
 ```  
+You must have build-essential installed in order to make binaries.
 Linux Users: Ensure you have pdftotext installed on your system. It is in the poppler-utils package which is included by default on most Unix systems.
 OSX Users: pdftotext is not available to you through package managers. There is an included precompiled OSX binary, so you need not worry.
 
-Windows:  
-Install [MinGW](http://www.mingw.org/) ([installer](http://sourceforge.net/projects/mingw/files/Installer/mingw-get-inst/))  
-`mingw32-make all`
+#### Windows:  
+Install [Cygwin](http://www.cygwin.com/) ([installer](http://cygwin.com/setup.exe))  
+Ensure you select the following packages for installation:
+`file gzip tar unzip gcc-core gcc make`
+
+After installing Cygwin, follow the instructions for installing on Unix systems, as shown above, using the cygwin terminal.
 
 ### Contributing
 
@@ -169,6 +175,11 @@ Install [MinGW](http://www.mingw.org/) ([installer](http://sourceforge.net/proje
 Don't change the version numbers. If you have to change the them, do it in a separate commit so I can ignore it when merging your pull request.
 
 ### Revisions
+
+1.2.3 (Oct. 8, 2012):
+
+* Added Windows installation instructions
+* Changed gunzip to gzip
 
 1.2.2 (Oct. 8, 2012):
 
