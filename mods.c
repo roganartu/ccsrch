@@ -528,7 +528,7 @@ int gunzip_and_parse(char *filename) {
         devnull = open("/dev/null", O_WRONLY);
         dup2(temp_file, STDOUT_FILENO);
         dup2(devnull, STDERR_FILENO);
-        execlp("gunzip", "gunzip", "-c", "-f", filename, NULL);
+        execlp("gzip", "gzip", "-c", "-d", "-f", filename, NULL);
     } else if (pid > (pid_t) 0) {
         /* Parent */
          exit_code = 0;
