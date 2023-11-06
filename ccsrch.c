@@ -35,30 +35,43 @@ char           *logfilename = NULL;
 char           *currfilename = NULL;
 FILE           *logfilefd = NULL;
 long            total_count = 0;
-long		currfile_atime=0;
-long		currfile_mtime=0;
-long		currfile_ctime=0;
+long            currfile_atime=0;
+long            currfile_mtime=0;
+long            currfile_ctime=0;
 int             init_time = 0;
-int 		print_byte_offset=0;
-int 		print_epoch_time=0;
-int 		print_julian_time=0;
-int 		print_filename_only=0;
+int             print_byte_offset=0;
+int             print_epoch_time=0;
+int             print_julian_time=0;
+int             print_filename_only=0;
 char            ccsrch_buf[BSIZE];
-int    		ccsrch_index = 0;
-int		tracksrch=0;
-int		tracktype1=0;
-int		tracktype2=0;
-int		trackdatacount=0;
-char		lastfilename[MAXPATH];
-int		filename_pan_count=0;
+int             ccsrch_index = 0;
+int             tracksrch=0;
+int             tracktype1=0;
+int             tracktype2=0;
+int             trackdatacount=0;
+char            lastfilename[MAXPATH];
+int             filename_pan_count=0;
 
 void
 initialize_buffer()
 {
-  int	i=0;
+  int   i=0;
   for (i=0; i<CARDSIZE; i++)
     cardbuf[i]=0;
 }
+
+// add by hwz
+static void mask_pan(char *s)
+{
+  /* Make the PAN number; probably a better way to do this */
+  int j;
+
+  for (j=0; s[j]!='\0'; j++) {
+    if (j > 5 && j < strlen(s) - 4)
+      s[j] = '*';
+  }
+}
+
 
 void 
 print_result(char *cardname, int cardlen, long byte_offset)
@@ -67,13 +80,13 @@ print_result(char *cardname, int cardlen, long byte_offset)
   int             i = 0;
   char            nbuf[20];
   char            buf[MAXPATH];
-  char		  basebuf[MDBUFSIZE];
-  char		  bytebuf[MDBUFSIZE];
-  char		  datebuf[MDBUFSIZE];
-  char		  mdatebuf[CARDTYPELEN];
-  char		  adatebuf[CARDTYPELEN];
-  char		  cdatebuf[CARDTYPELEN];
-  char		  trackbuf[MDBUFSIZE];
+  char            basebuf[MDBUFSIZE];
+  char            bytebuf[MDBUFSIZE];
+  char            datebuf[MDBUFSIZE];
+  char            mdatebuf[CARDTYPELEN];
+  char            adatebuf[CARDTYPELEN];
+  char            cdatebuf[CARDTYPELEN];
+  char            trackbuf[MDBUFSIZE];
   char            print_filename[MAXPATH];
   char            cardpos[MAXPATH];
   file_type       parent_type;
@@ -85,7 +98,8 @@ print_result(char *cardname, int cardlen, long byte_offset)
 
   memset(&buf,'\0',MAXPATH);
   memset(&basebuf,'\0',MDBUFSIZE);
-
+  // add by hwz
+  mask_pan(nbuf);
   // Show the filename of the archive if this file was extracted from somewhere
   if (extracted_parent[0] != 0) {
     strncpy(print_filename, extracted_parent, MAXPATH);
@@ -310,7 +324,7 @@ ccsrch(char *filename)
   FILE           *in = NULL;
   int             infd = 0;
   int             cnt = 0;
-  long		  byte_offset=1;
+  long            byte_offset=1;
   int    k = 0;
   int    counter = 0;
   int    total = 0;
@@ -996,12 +1010,12 @@ int check_dir (char *name)
 int 
 main(int argc, char *argv[])
 {
-  struct stat	ffstat;
-  char		*inputstr = NULL;
-  char		*inbuf = NULL;
-  char		*tracktype_str=NULL;
-  char		tmpbuf[4096];
-  int		inlen = 0, err=0, c=0;
+  struct stat   ffstat;
+  char          *inputstr = NULL;
+  char          *inbuf = NULL;
+  char          *tracktype_str=NULL;
+  char          tmpbuf[4096];
+  int           inlen = 0, err=0, c=0;
 
   if (argc < 2)
     usage(argv[0]);
