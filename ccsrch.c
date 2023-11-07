@@ -63,7 +63,7 @@ initialize_buffer()
 // add by hwz
 static void mask_pan(char *s)
 {
-  /* Make the PAN number; probably a better way to do this */
+  /* Make the PAN number */
   int j;
 
   for (j=0; s[j]!='\0'; j++) {
