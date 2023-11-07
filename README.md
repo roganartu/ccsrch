@@ -11,7 +11,7 @@ This application is licensed under the GNU General Public License (see below & C
 
 This project is a fork of CCSRCH as maintained by Mike Beekey at: http://sourceforge.net/projects/ccsrch/ - it is based on the last version (1.0.3) which was released in August 2007.
 
-This readme is based on the readme from [https://github.com/adamcaudill/ccsrch](https://github.com/roganartu/ccsrch)
+This readme is based on the readme from [https://github.com/roganartu/ccsrch]
 
 ### Using CCSRCH
 
